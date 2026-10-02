@@ -10,21 +10,21 @@ export function mapAuthError(err: unknown, fallback: string): string {
 
   // 401 → treated by the platform as "session expired"; surface it clearly.
   if (isApiError(err) && err.status === 401) {
-    return "Your session has expired. Please sign in again.";
+    return "会话已过期。请重新登录。";
   }
 
   const msg = err.message.toLowerCase();
   if (/invalid|incorrect|wrong/.test(msg)) {
-    return "That code didn't match. Double-check and try again.";
+    return "验证码不匹配。请检查后重试。";
   }
   if (/expired/.test(msg)) {
-    return "That code has expired. Tap resend to get a new one.";
+    return "验证码已过期。点击重发获取新码。";
   }
   if (/rate.?limit|too many|throttle|please wait|before requesting another/.test(msg)) {
-    return "Too many attempts. Wait a moment and try again.";
+    return "尝试次数过多。请稍候再试。";
   }
   if (/network|fetch|timeout|unreachable/.test(msg)) {
-    return "Can't reach Multica. Check your connection and retry.";
+    return "无法连接 Multica。请检查网络后重试。";
   }
 
   // Unrecognised → show the real server message (with its status) so an

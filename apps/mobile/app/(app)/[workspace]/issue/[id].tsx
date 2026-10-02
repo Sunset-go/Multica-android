@@ -121,12 +121,12 @@ export default function IssueDetail() {
     const issueLink = webUrl
       ? `${webUrl}/${wsSlug}/issue/${issue.identifier}`
       : null;
-    const options: string[] = ["Cancel"];
-    options.push(isPinned ? "Unpin" : "Pin");
-    options.push("Edit details");
-    if (issueLink) options.push("Copy link");
-    if (issueLink) options.push("Open on web");
-    options.push("Delete issue");
+    const options: string[] = ["取消"];
+    options.push(isPinned ? "取消固定" : "固定");
+    options.push("编辑详情");
+    if (issueLink) options.push("复制链接");
+    if (issueLink) options.push("在网页中打开");
+    options.push("删除任务");
     const destructiveIndex = options.length - 1;
     showActionSheet(
       {
@@ -137,17 +137,17 @@ export default function IssueDetail() {
       },
       (i) => {
         const label = options[i];
-        if (label === "Pin") {
+        if (label === "固定") {
           createPin.mutate({ item_type: "issue", item_id: issue.id });
-        } else if (label === "Unpin") {
+        } else if (label === "取消固定") {
           deletePin.mutate({ itemType: "issue", itemId: issue.id });
-        } else if (label === "Edit details") {
+        } else if (label === "编辑详情") {
           if (wsSlug) router.push(`/${wsSlug}/issue/${issue.id}/edit`);
-        } else if (label === "Copy link" && issueLink) {
+        } else if (label === "复制链接" && issueLink) {
           Clipboard.setStringAsync(issueLink);
-        } else if (label === "Open on web" && issueLink) {
+        } else if (label === "在网页中打开" && issueLink) {
           Linking.openURL(issueLink);
-        } else if (label === "Delete issue") {
+        } else if (label === "删除任务") {
           confirmDelete(issue, () =>
             deleteIssue.mutate(issue.id, {
               onSuccess: () => router.back(),
@@ -162,8 +162,8 @@ export default function IssueDetail() {
     <View className="flex-1 bg-background">
       <Stack.Screen
         options={{
-          title: issue?.identifier ?? "Issue",
-          headerBackTitle: "Back",
+          title: issue?.identifier ?? "任务",
+          headerBackTitle: "返回",
           headerRight: issue
             ? () => (
                 <View className="flex-row items-center gap-2">
@@ -174,7 +174,7 @@ export default function IssueDetail() {
                   <IconButton
                     name="ellipsis-horizontal"
                     onPress={onPressMore}
-                    accessibilityLabel="Issue actions"
+                    accessibilityLabel="任务操作"
                   />
                 </View>
               )
@@ -186,13 +186,13 @@ export default function IssueDetail() {
       ) : detail.error || !issue ? (
         <View className="flex-1 items-center justify-center px-6 gap-3">
           <Text className="text-sm text-destructive text-center">
-            Failed to load issue:{" "}
+            任务加载失败：{" "}
             {detail.error instanceof Error
               ? detail.error.message
-              : "not found"}
+              : "未找到"}
           </Text>
           <Button variant="outline" onPress={() => detail.refetch()}>
-            <Text>Retry</Text>
+            <Text>重试</Text>
           </Button>
         </View>
       ) : (
@@ -215,11 +215,11 @@ export default function IssueDetail() {
 
 function confirmDelete(issue: Issue, onConfirm: () => void) {
   Alert.alert(
-    "Delete issue?",
-    `${issue.identifier} and its comments, reactions, and attachments will be permanently deleted. This cannot be undone.`,
+    "删除任务？",
+    `${issue.identifier} 及其评论、表情和附件将被永久删除，无法撤销。`,
     [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: onConfirm },
+      { text: "取消", style: "cancel" },
+      { text: "删除", style: "destructive", onPress: onConfirm },
     ],
   );
 }

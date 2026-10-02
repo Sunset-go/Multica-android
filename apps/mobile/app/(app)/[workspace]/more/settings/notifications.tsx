@@ -27,33 +27,33 @@ const INBOX_GROUPS: Array<{
 }> = [
   {
     key: "assignments",
-    label: "Assignments",
-    description: "When you're assigned an issue or removed as assignee.",
+    label: "分配通知",
+    description: "当您被分配任务或被移除为负责人时。",
   },
   {
     key: "status_changes",
-    label: "Status changes",
-    description: "When an issue's status changes.",
+    label: "状态变更",
+    description: "当任务状态变更时。",
   },
   {
     key: "comments",
-    label: "Comments",
-    description: "New comments on issues you're subscribed to.",
+    label: "评论",
+    description: "您订阅的任务有新评论时。",
   },
   {
     key: "mentions",
-    label: "Mentions",
-    description: "When someone @mentions you, including @all and @squad.",
+    label: "提及",
+    description: "当有人 @提及您时（包括 @所有人 和 @小队）。",
   },
   {
     key: "updates",
-    label: "Issue updates",
-    description: "Edits to title, description, labels, priority, or due date.",
+    label: "任务更新",
+    description: "标题、描述、标签、优先级或截止日期的修改。",
   },
   {
     key: "agent_activity",
-    label: "Agent activity",
-    description: "When an agent picks up, runs, or completes a task.",
+    label: "智能体动态",
+    description: "当智能体接受、运行或完成任务时。",
   },
 ];
 
@@ -91,7 +91,7 @@ export default function NotificationsSettingsScreen() {
     return (
       <View className="flex-1 items-center justify-center bg-background px-6">
         <Text className="text-sm text-destructive text-center">
-          Failed to load notification preferences.
+          加载通知偏好失败。
         </Text>
       </View>
     );
@@ -103,8 +103,8 @@ export default function NotificationsSettingsScreen() {
       contentContainerClassName="px-4 py-4 gap-6"
     >
       <Section
-        title="Inbox notifications"
-        description="Which events show up in your inbox."
+        title="收件箱通知"
+        description="哪些事件会出现在您的收件箱。"
       >
         {INBOX_GROUPS.map((group, idx) => {
           const enabled = preferences[group.key] !== "muted";
@@ -132,16 +132,16 @@ export default function NotificationsSettingsScreen() {
       </Section>
 
       <Section
-        title="System"
-        description="Multica-wide announcements and important account events."
+        title="系统"
+        description="Multica 全站公告和重要账户事件。"
       >
         <View className="flex-row items-center px-4 py-3 gap-3">
           <View className="flex-1">
             <Text className="text-base font-medium text-foreground">
-              System notifications
+              系统通知
             </Text>
             <Text className="text-xs text-muted-foreground mt-0.5">
-              Account changes, security alerts, product updates.
+              账户变更、安全告警、产品更新。
             </Text>
           </View>
           <Switch

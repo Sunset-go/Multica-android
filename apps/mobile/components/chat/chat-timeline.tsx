@@ -46,7 +46,7 @@ export function ChatTimeline({ items, isStreaming = false }: Props) {
       <CollapsibleTrigger asChild>
         <View
           accessibilityRole="button"
-          accessibilityLabel={`${processSteps.length} step${processSteps.length === 1 ? "" : "s"}`}
+          accessibilityLabel={`${processSteps.length} 个步骤`}
           className="flex-row items-center gap-1 active:opacity-70"
         >
           <Ionicons name="chevron-forward" size={12} color="#71717a" />

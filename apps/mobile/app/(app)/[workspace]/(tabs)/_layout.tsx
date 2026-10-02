@@ -121,7 +121,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="inbox"
           options={{
-            title: "Inbox",
+            title: "收件箱",
             tabBarBadge: inboxBadge,
             tabBarBadgeStyle: BADGE_STYLE,
             tabBarIcon: ({ color, size, focused }) => (
@@ -136,7 +136,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="my-issues"
           options={{
-            title: "My Issues",
+            title: "我的任务",
             tabBarIcon: ({ color, size, focused }) => (
               <Image
                 source={focused ? "sf:checklist" : "sf:checklist.unchecked"}
@@ -149,7 +149,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="chat"
           options={{
-            title: "Chat",
+            title: "聊天",
             tabBarBadge: chatBadge,
             tabBarBadgeStyle: BADGE_STYLE,
             tabBarIcon: ({ color, size, focused }) => (
@@ -164,7 +164,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="more"
           options={{
-            title: "More",
+            title: "更多",
             tabBarIcon: ({ color, size }) => (
               <Image
                 source="sf:ellipsis"

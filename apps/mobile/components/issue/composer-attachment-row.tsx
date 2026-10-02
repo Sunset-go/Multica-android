@@ -155,7 +155,7 @@ function MentionChipView({
         onPress={() => onRemove(mention.type, mention.id)}
         hitSlop={8}
         accessibilityRole="button"
-        accessibilityLabel={`Remove mention ${mention.name}`}
+        accessibilityLabel={`移除提及 ${mention.name}`}
         className="h-4 w-4 items-center justify-center"
       >
         <Ionicons name="close" size={12} color={theme.mutedForeground} />
@@ -248,7 +248,7 @@ function AttachmentChipView({ item, onRemove, onRetry }: AttachmentChipProps) {
         onPress={() => onRemove(item.localId)}
         hitSlop={8}
         accessibilityRole="button"
-        accessibilityLabel={`Remove ${item.filename}`}
+        accessibilityLabel={`移除 ${item.filename}`}
         className="h-4 w-4 items-center justify-center"
       >
         <Ionicons name="close" size={12} color={theme.mutedForeground} />

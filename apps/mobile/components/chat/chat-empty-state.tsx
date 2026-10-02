@@ -11,20 +11,17 @@
  *     Three taps, three common workflows; tapping prefills the composer
  *     draft so the user can edit before sending.
  *
- * Copy mirrors the web `chat.json` namespace 1:1. Mobile doesn't have
- * i18n yet so the strings are inlined in English — when mobile adopts
- * i18n the lookup keys (`empty_state.first_time_title` etc.) are already
- * established on the web side, so the migration is a literal
- * key-by-key swap.
+ * Copy mirrors the web `chat.json` namespace 1:1. Mobile is now
+ * Chinese-only; strings are inlined directly.
  */
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
 
 const STARTER_PROMPTS: { icon: string; text: string }[] = [
-  { icon: "📋", text: "List my open issues by priority" },
-  { icon: "📝", text: "Summarize what I did today" },
-  { icon: "💡", text: "Help me plan what to do next" },
+  { icon: "📋", text: "按优先级列出我的未完成任务" },
+  { icon: "📝", text: "总结我今天完成的内容" },
+  { icon: "💡", text: "帮我规划下一步做什么" },
 ];
 
 interface Props {
@@ -41,19 +38,19 @@ export function ChatEmptyState({ hasSessions, agentName, onPickPrompt }: Props) 
       <View className="flex-1 items-center justify-center px-6 py-8">
         <View className="max-w-xs items-center gap-3">
           <Text className="text-base font-semibold text-foreground text-center">
-            Chat with your agents
+            与您的智能体对话
           </Text>
           <Text className="text-sm text-muted-foreground text-center">
             <Text className="text-sm text-muted-foreground">
-              ✨ They know your workspace —{" "}
+              ✨ 它们熟悉您的工作区 ——
             </Text>
             <Text className="text-sm font-medium text-foreground">
-              issues, projects, skills
+              任务、项目、技能
             </Text>
-            <Text className="text-sm text-muted-foreground">.</Text>
+            <Text className="text-sm text-muted-foreground">。</Text>
           </Text>
           <Text className="text-sm text-muted-foreground text-center">
-            Ask for a summary, plan your day, or hand off a small task.
+            可以请求总结、规划一天，或把小任务交出去。
           </Text>
         </View>
       </View>
@@ -61,7 +58,7 @@ export function ChatEmptyState({ hasSessions, agentName, onPickPrompt }: Props) 
   }
 
   // Returning user: starter prompts are the fastest path back to action.
-  const title = agentName ? `Hi, I'm ${agentName}` : "Welcome back to Multica";
+  const title = agentName ? `你好，我是 ${agentName}` : "欢迎回到 Multica";
   return (
     <View className="flex-1 items-center justify-center px-6 py-8 gap-5">
       <View className="items-center gap-1">
@@ -69,7 +66,7 @@ export function ChatEmptyState({ hasSessions, agentName, onPickPrompt }: Props) 
           {title}
         </Text>
         <Text className="text-sm text-muted-foreground text-center">
-          Try asking
+          试试这样问
         </Text>
       </View>
       <View className="w-full max-w-xs gap-2">

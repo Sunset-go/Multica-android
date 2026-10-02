@@ -1,13 +1,12 @@
 /**
  * Activity-row text formatter. Subset of the web `formatActivity` in
  * packages/views/issues/components/issue-detail.tsx:95 — same actions,
- * English-only copy (mobile v1 is English-only; mirror the structure when
- * mobile gains i18n).
+ * Chinese-only copy (mobile is now Chinese-only).
  *
  * Unknown actions fall through to the raw string in `entry.action`. NEVER
  * throw and NEVER drop the row — that's the API Response Compatibility rule
  * from repo-root CLAUDE.md (server may add new action enum values; older
- * mobile clients in the wild must render them as a generic fallback, not
+ * mobile clients in the in the wild must render them as a generic fallback, not
  * crash).
  */
 import type {
@@ -18,21 +17,21 @@ import type {
 import { formatDateOnly } from "@multica/core/issues/date";
 
 const STATUS_LABEL: Record<IssueStatus, string> = {
-  backlog: "Backlog",
-  todo: "Todo",
-  in_progress: "In Progress",
-  in_review: "In Review",
-  done: "Done",
-  blocked: "Blocked",
-  cancelled: "Cancelled",
+  backlog: "待办",
+  todo: "待开始",
+  in_progress: "进行中",
+  in_review: "审阅中",
+  done: "已完成",
+  blocked: "已阻塞",
+  cancelled: "已取消",
 };
 
 const PRIORITY_LABEL: Record<IssuePriority, string> = {
-  urgent: "Urgent",
-  high: "High",
-  medium: "Medium",
-  low: "Low",
-  none: "No priority",
+  urgent: "紧急",
+  high: "高",
+  medium: "中",
+  low: "低",
+  none: "无优先级",
 };
 
 function statusName(s: string | undefined): string {
@@ -49,7 +48,7 @@ function priorityName(p: string | undefined): string {
 // day shift). Mirrors web's formatActivity in issue-detail.tsx.
 function shortDate(date: string | undefined): string {
   if (!date) return "?";
-  return formatDateOnly(date, { month: "short", day: "numeric" }, "en-US");
+  return formatDateOnly(date, { month: "short", day: "numeric" }, "zh-CN");
 }
 
 export function formatActivity(
@@ -62,68 +61,64 @@ export function formatActivity(
   const details = (entry.details ?? {}) as Record<string, string>;
   switch (entry.action) {
     case "created":
-      return "created the issue";
+      return "创建了任务";
     case "status_changed":
-      return `changed status: ${statusName(details.from)} → ${statusName(details.to)}`;
+      return `修改了状态：${statusName(details.from)} → ${statusName(details.to)}`;
     case "priority_changed":
-      return `changed priority: ${priorityName(details.from)} → ${priorityName(details.to)}`;
+      return `修改了优先级：${priorityName(details.from)} → ${priorityName(details.to)}`;
     case "assignee_changed": {
       const isSelf =
         details.to_type === entry.actor_type &&
         details.to_id === entry.actor_id;
-      if (isSelf) return "self-assigned";
-      if (details.from_id && !details.to_id) return "removed assignee";
+      if (isSelf) return "自分配给自己";
+      if (details.from_id && !details.to_id) return "移除了负责人";
       const toName =
         details.to_id && details.to_type
           ? resolveActorName(details.to_type, details.to_id)
           : null;
-      if (toName) return `assigned to ${toName}`;
-      return "changed assignee";
+      if (toName) return `分配给了 ${toName}`;
+      return "修改了负责人";
     }
     case "start_date_changed": {
-      if (!details.to) return "removed start date";
-      return `set start date to ${shortDate(details.to)}`;
+      if (!details.to) return "移除了开始日期";
+      return `设置开始日期为 ${shortDate(details.to)}`;
     }
     case "due_date_changed": {
-      if (!details.to) return "removed due date";
-      return `set due date to ${shortDate(details.to)}`;
+      if (!details.to) return "移除了截止日期";
+      return `设置截止日期为 ${shortDate(details.to)}`;
     }
     case "title_changed":
-      return `renamed: "${details.from ?? "?"}" → "${details.to ?? "?"}"`;
+      return `重命名：\"${details.from ?? "?"}\" → \"${details.to ?? "?"}\"`;
     case "description_updated":
-      return "updated description";
+      return "更新了描述";
     case "task_completed": {
       const n = entry.coalesced_count ?? 1;
-      return n > 1 ? `completed ${n} tasks` : "completed a task";
+      return n > 1 ? `完成了 ${n} 个任务` : "完成了 1 个任务";
     }
     case "task_failed": {
       const n = entry.coalesced_count ?? 1;
-      return n > 1 ? `failed ${n} tasks` : "failed a task";
+      return n > 1 ? `${n} 个任务失败` : "1 个任务失败";
     }
     case "squad_leader_evaluated": {
-      // Copy mirrors packages/views/locales/en/issues.json
-      // (squad_leader_action / squad_leader_no_action / squad_leader_failed,
-      // each with an optional `_reason` variant).
       const reason = details.reason?.trim();
       switch (details.outcome) {
         case "action":
           return reason
-            ? `evaluated and took action: ${reason}`
-            : "evaluated and took action";
+            ? `已评估并执行操作：${reason}`
+            : "已评估并执行操作";
         case "no_action":
           return reason
-            ? `evaluated: no action needed (${reason})`
-            : "evaluated: no action needed";
+            ? `已评估：无需操作（${reason}）`
+            : "已评估：无需操作";
         case "failed":
           return reason
-            ? `evaluation failed: ${reason}`
-            : "evaluation failed";
+            ? `评估失败：${reason}`
+            : "评估失败";
         default:
-          return "evaluated the squad trigger";
+          return "评估了小队触发器";
       }
     }
     default:
       return entry.action ?? "";
   }
 }
-

@@ -261,7 +261,7 @@ class ApiClient {
           duration: `${duration}ms`,
         });
         throw new ApiError(
-          `Request timed out after ${FETCH_TIMEOUT_MS}ms`,
+          `请求超时（${FETCH_TIMEOUT_MS}ms）`,
           0,
           undefined,
         );
@@ -1027,7 +1027,7 @@ class ApiClient {
       console.error("[api] ← shape mismatch POST /api/chat/sessions", {
         issues: parsed.error.issues,
       });
-      throw new ApiError("Create chat session response invalid", 0, raw);
+      throw new ApiError("创建聊天会话响应无效", 0, raw);
     }
     return parsed.data;
   }
@@ -1080,7 +1080,7 @@ class ApiClient {
       console.error("[api] ← shape mismatch POST /api/chat/sessions/:id/messages", {
         issues: parsed.error.issues,
       });
-      throw new ApiError("Send message response invalid", 0, raw);
+      throw new ApiError("发送消息响应无效", 0, raw);
     }
     return parsed.data;
   }
@@ -1275,7 +1275,7 @@ class ApiClient {
         rid,
         error: parsed.error.message,
       });
-      throw new ApiError("Upload response invalid", res.status, json);
+      throw new ApiError("上传响应无效", res.status, json);
     }
     return parsed.data;
   }

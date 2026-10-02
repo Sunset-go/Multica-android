@@ -23,19 +23,19 @@ export const BOARD_STATUSES: IssueStatus[] = [
 ];
 
 export const STATUS_LABEL: Record<IssueStatus, string> = {
-  backlog: "Backlog",
-  todo: "Todo",
-  in_progress: "In Progress",
-  in_review: "In Review",
-  done: "Done",
-  blocked: "Blocked",
-  cancelled: "Cancelled",
+  backlog: "待办",
+  todo: "待开始",
+  in_progress: "进行中",
+  in_review: "审阅中",
+  done: "已完成",
+  blocked: "已阻塞",
+  cancelled: "已取消",
 };
 
 export const PRIORITY_LABEL: Record<IssuePriority, string> = {
-  none: "No priority",
-  low: "Low",
-  medium: "Medium",
-  high: "High",
-  urgent: "Urgent",
+  none: "无优先级",
+  low: "低",
+  medium: "中",
+  high: "高",
+  urgent: "紧急",
 };

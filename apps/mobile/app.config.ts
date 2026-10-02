@@ -22,7 +22,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         ? "Multica (Staging)"
         : "Multica (Dev)",
     slug: "multica-mobile",
-    version: "0.2.3",
+    version: "0.2.4",
     orientation: "portrait",
     userInterfaceStyle: "automatic",
     scheme: "multica",
@@ -36,7 +36,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       // be swapped per-store the way iOS bundle ids are, so a single
       // reverse-domain value is used for dev / staging / production.
       package: "ai.multica.mobile",
-      versionCode: 203,
+      versionCode: 204,
     },
     ios: {
       supportsTablet: false,

@@ -90,12 +90,12 @@ function CancelButton({
 
   const onPress = () => {
     Alert.alert(
-      "Cancel task?",
-      "The agent will stop after the current step.",
+      "取消任务？",
+      "智能体会在当前步骤结束后停止。",
       [
-        { text: "Keep running", style: "cancel" },
+        { text: "继续运行", style: "cancel" },
         {
-          text: "Cancel task",
+          text: "取消任务",
           style: "destructive",
           onPress: () => mutation.mutate(taskId),
         },
@@ -109,7 +109,7 @@ function CancelButton({
       disabled={mutation.isPending}
       className="px-3 py-1.5 rounded-md bg-secondary active:opacity-70"
     >
-      <Text className="text-xs font-medium text-foreground">Cancel</Text>
+      <Text className="text-xs font-medium text-foreground">取消</Text>
     </Pressable>
   );
 }
@@ -117,27 +117,27 @@ function CancelButton({
 function fallbackSummary(task: AgentTask): string {
   switch (task.kind) {
     case "comment":
-      return "Comment task";
+      return "评论任务";
     case "autopilot":
-      return "Autopilot run";
+      return "自动运行";
     case "chat":
-      return "Chat task";
+      return "对话任务";
     case "quick_create":
-      return "Quick create";
+      return "快速创建";
     case "direct":
     default:
-      return "Task";
+      return "任务";
   }
 }
 
 const STATUS_LABEL: Record<AgentTask["status"], string> = {
-  queued: "Queued",
-  dispatched: "Starting",
-  waiting_local_directory: "Waiting for directory",
-  running: "Running",
-  completed: "Done",
-  failed: "Failed",
-  cancelled: "Cancelled",
+  queued: "排队中",
+  dispatched: "启动中",
+  waiting_local_directory: "等待目录",
+  running: "运行中",
+  completed: "已完成",
+  failed: "失败",
+  cancelled: "已取消",
 };
 
 const STATUS_CLASS: Record<AgentTask["status"], string> = {
@@ -161,31 +161,31 @@ const STATUS_CLASS: Record<AgentTask["status"], string> = {
 // An unrecognised reason still does — a compact badge is the one place where
 // web's raw-wire-value fallback would overflow the row.
 const FAILURE_REASON_LABEL: Record<string, string> = {
-  queued_expired: "Queue expired",
-  runtime_offline: "Runtime offline",
-  runtime_recovery: "Runtime recovery",
-  timeout: "Timeout",
-  iteration_limit: "Iteration limit",
-  agent_blocked: "Needs input",
-  api_invalid_request: "Request rejected",
-  skill_bundle_unavailable: "Skill download failed",
+  queued_expired: "队列超时",
+  runtime_offline: "运行离线",
+  runtime_recovery: "运行恢复",
+  timeout: "超时",
+  iteration_limit: "迭代上限",
+  agent_blocked: "需要输入",
+  api_invalid_request: "请求被拒",
+  skill_bundle_unavailable: "技能下载失败",
 
-  "agent_error.provider_auth_or_access": "Auth failed",
-  "agent_error.provider_quota_limit": "Quota exhausted",
-  "agent_error.provider_capacity_or_rate_limit": "Rate limited",
-  "agent_error.provider_server_error": "Provider error",
-  "agent_error.provider_network": "Network error",
-  "agent_error.process_failure": "Process crashed",
-  "agent_error.empty_or_unparseable_output": "No usable output",
-  "agent_error.agent_timeout": "Agent timeout",
-  "agent_error.context_overflow": "Context overflow",
-  "agent_error.missing_config": "Config missing",
-  "agent_error.model_not_found_or_unavailable": "Model unavailable",
-  "agent_error.runtime_version_unsupported": "CLI unsupported",
-  "agent_error.runtime_missing_executable": "CLI not installed",
-  "agent_error.unknown": "Agent error",
+  "agent_error.provider_auth_or_access": "认证失败",
+  "agent_error.provider_quota_limit": "配额用尽",
+  "agent_error.provider_capacity_or_rate_limit": "被供应商限流",
+  "agent_error.provider_server_error": "供应商错误",
+  "agent_error.provider_network": "网络错误",
+  "agent_error.process_failure": "进程崩溃",
+  "agent_error.empty_or_unparseable_output": "无可用输出",
+  "agent_error.agent_timeout": "智能体超时",
+  "agent_error.context_overflow": "上下文溢出",
+  "agent_error.missing_config": "缺少配置",
+  "agent_error.model_not_found_or_unavailable": "模型不可用",
+  "agent_error.runtime_version_unsupported": "CLI 不支持",
+  "agent_error.runtime_missing_executable": "未安装 CLI",
+  "agent_error.unknown": "智能体错误",
 
-  agent_error: "Agent error",
-  codex_semantic_inactivity: "Codex inactivity",
-  manual: "Manual",
+  agent_error: "智能体错误",
+  codex_semantic_inactivity: "Codex 静默",
+  manual: "手动",
 };

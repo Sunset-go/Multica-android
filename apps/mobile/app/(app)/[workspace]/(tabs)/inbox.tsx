@@ -34,8 +34,8 @@ export default function Inbox() {
   );
   useEffect(() => {
     if (!error || Platform.OS !== "android") return;
-    const message = error instanceof Error ? error.message : "unknown error";
-    ToastAndroid.show(`Failed to load inbox: ${message}`, ToastAndroid.LONG);
+    const message = error instanceof Error ? error.message : "未知错误";
+    ToastAndroid.show(`收件箱加载失败：${message}`, ToastAndroid.LONG);
   }, [error]);
   // The FlatList `refreshing` prop is controlled — binding it to isRefetching
   // would show the pull-to-refresh spinner during background/auto refetches
@@ -90,18 +90,18 @@ export default function Inbox() {
   // the iOS red treatment + Alert confirm.
   const onPressMenu = () => {
     const options = [
-      "Cancel",
-      "Mark all read",
-      "Archive all read",
-      "Archive completed",
-      "Archive all",
+      "取消",
+      "全部标为已读",
+      "归档所有已读",
+      "归档已完成",
+      "归档全部",
     ];
     showActionSheet(
       {
         options,
         cancelButtonIndex: 0,
         destructiveButtonIndex: 4,
-        title: "Inbox",
+        title: "收件箱",
       },
       (i) => {
         if (i === 1) markAllRead.mutate();
@@ -109,12 +109,12 @@ export default function Inbox() {
         else if (i === 3) archiveCompleted.mutate();
         else if (i === 4) {
           Alert.alert(
-            "Archive all?",
-            "This archives every inbox item, read or unread. You can still find them via the issue pages.",
+            "归档全部？",
+            "这将归档所有收件箱条目，无论是否已读。您仍可在任务页面找到它们。",
             [
-              { text: "Cancel", style: "cancel" },
+              { text: "取消", style: "cancel" },
               {
-                text: "Archive all",
+                text: "归档全部",
                 style: "destructive",
                 onPress: () => archiveAll.mutate(),
               },
@@ -128,13 +128,13 @@ export default function Inbox() {
   return (
     <View className="flex-1 bg-background">
       <Header
-        title="Inbox"
+        title="收件箱"
         right={
           <>
             <IconButton
               name="ellipsis-horizontal"
               onPress={onPressMenu}
-              accessibilityLabel="Inbox actions"
+              accessibilityLabel="收件箱操作"
             />
             <HeaderActions />
           </>
@@ -191,11 +191,10 @@ function InboxEmpty({ iconColor }: { iconColor: string }) {
     <View className="flex-1 items-center justify-center px-8 gap-3">
       <Ionicons name="mail-open-outline" size={42} color={iconColor} />
       <Text className="text-base font-medium text-foreground text-center">
-        Inbox zero
+        收件箱已清空
       </Text>
       <Text className="text-sm text-muted-foreground text-center">
-        When someone @mentions you, assigns an issue, or an agent finishes a
-        task, it shows up here.
+        当有人 @提及您、分配任务，或智能体完成任务时，会显示在这里。
       </Text>
     </View>
   );

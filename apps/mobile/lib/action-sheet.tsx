@@ -250,7 +250,7 @@ export function ActionSheetHost() {
                   className="flex-1 px-4 py-3 active:bg-secondary"
                 >
                   <Text className="text-base text-center text-foreground">
-                    Copy all
+                    复制全部
                   </Text>
                 </Pressable>
                 <Pressable
@@ -258,7 +258,7 @@ export function ActionSheetHost() {
                   className="flex-1 px-4 py-3 border-l border-border active:bg-secondary"
                 >
                   <Text className="text-base text-center text-foreground font-semibold">
-                    Close
+                    关闭
                   </Text>
                 </Pressable>
               </View>

@@ -677,7 +677,7 @@ function NewCommentChip({
       onPress={onPress}
       className="absolute bottom-3 self-center px-3.5 py-1.5 rounded-full bg-primary active:opacity-80 flex-row items-center gap-1.5"
       accessibilityRole="button"
-      accessibilityLabel={`Jump to ${count} new ${count === 1 ? "message" : "messages"}`}
+      accessibilityLabel={`跳转到 ${count} 条新消息`}
       style={{
         // shadow comes from system, not Tailwind — keeps the chip readable
         // against either light or dark timeline content beneath.
@@ -711,7 +711,7 @@ function ScrollToLatestButton({ onPress }: { onPress: () => void }) {
       onPress={onPress}
       className="absolute bottom-3 right-3 size-10 rounded-full items-center justify-center active:opacity-80 border border-border"
       accessibilityRole="button"
-      accessibilityLabel="Scroll to latest"
+      accessibilityLabel="滚动到最新"
       style={{
         backgroundColor: bg,
         shadowColor: "#000",
@@ -742,7 +742,7 @@ function ScrollToTopButton({ onPress }: { onPress: () => void }) {
       onPress={onPress}
       className="absolute bottom-16 right-3 size-10 rounded-full items-center justify-center active:opacity-80 border border-border"
       accessibilityRole="button"
-      accessibilityLabel="Scroll to top"
+      accessibilityLabel="滚动到顶部"
       style={{
         backgroundColor: bg,
         shadowColor: "#000",
