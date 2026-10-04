@@ -1,6 +1,20 @@
 # Multica Android App
 
+[![CI](https://img.shields.io/github/actions/workflow/status/Sunset-go/Multica-android/android-release.yml)](https://github.com/Sunset-go/Multica-android/actions/workflows/android-release.yml)
+[![Latest Release](https://img.shields.io/github/v/release/Sunset-go/Multica-android)](https://github.com/Sunset-go/Multica-android/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![platforms: iOS · Android](https://img.shields.io/badge/platforms-iOS%20%7C%20Android-blueviolet)](#)
+
 [Multica](https://github.com/multica-ai/multica) 的独立 Expo / React Native 客户端，从 Multica monorepo 中抽出。此仓库包含移动端应用（`apps/mobile/`）以及它所依赖的 `@multica/core` 业务逻辑包，作为一个可自包含构建的 pnpm workspace 组织。
+
+> English version: [README.en.md](./README.en.md)
+
+## 📦 下载 APK
+
+最新正式版发布在 [Releases](https://github.com/Sunset-go/Multica-android/releases)，包含两种包：
+
+- `multica-app-v<version>.apk` — universal（含全部 ABI，体积大，兼容老设备）
+- `multica-app-v<version>-arm64.apk` — arm64-only（体积小，现代手机首选）
 
 ## 目录结构
 
