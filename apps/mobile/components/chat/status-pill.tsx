@@ -41,6 +41,7 @@ import { Text } from "@/components/ui/text";
 import { formatElapsedSecs } from "@/lib/format-elapsed";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { THEME } from "@/lib/theme";
+import { getT } from "@/lib/i18n/use-translation";
 
 interface Props {
   pendingTask: ChatPendingTask | null | undefined;
@@ -57,42 +58,29 @@ interface Stage {
   static?: boolean;
 }
 
-const TOOL_LABELS: Record<string, string> = {
-  bash: "运行命令",
-  exec: "运行命令",
-  read: "读取文件",
-  glob: "读取文件",
-  grep: "搜索代码",
-  write: "编辑文件",
-  edit: "编辑文件",
-  multi_edit: "编辑文件",
-  multiedit: "编辑文件",
-  web_search: "搜索网页",
-  websearch: "搜索网页",
-};
-
 function pickStage(
   status: string | undefined,
   taskMessages: readonly TaskMessagePayload[],
   availability: AgentAvailability | undefined,
 ): Stage {
+  const t = getT();
   // Mirrors web: deferred is an older turn waiting for retry backoff, not
   // active model work, so it must not fall through to "思考中".
-  if (status === "deferred") return { label: "重试中" };
+  if (status === "deferred") return { label: t.statusPill.retrying };
   if (
     (status === "queued" || status === "dispatched") &&
     availability === "offline"
   ) {
-    return { label: "离线", static: true };
+    return { label: t.statusPill.offline, static: true };
   }
   if (
     (status === "queued" || status === "dispatched") &&
     availability === "unstable"
   ) {
-    return { label: "重连中" };
+    return { label: t.statusPill.reconnecting };
   }
-  if (status === "queued") return { label: "排队中" };
-  if (status === "dispatched") return { label: "启动中" };
+  if (status === "queued") return { label: t.statusPill.queued };
+  if (status === "dispatched") return { label: t.statusPill.starting };
 
   let latest: TaskMessagePayload | null = null;
   for (let i = taskMessages.length - 1; i >= 0; i--) {
@@ -102,14 +90,15 @@ function pickStage(
       break;
     }
   }
-  if (!latest) return { label: "思考中" };
-  if (latest.type === "thinking") return { label: "思考中" };
-  if (latest.type === "text") return { label: "输入中" };
+  if (!latest) return { label: t.statusPill.thinking };
+  if (latest.type === "thinking") return { label: t.statusPill.thinking };
+  if (latest.type === "text") return { label: t.statusPill.typing };
   if (latest.type === "tool_use") {
     const slug = (latest.tool ?? "").toLowerCase();
-    return { label: TOOL_LABELS[slug] ?? "处理中" };
+    const tools = t.statusPill.tools as Record<string, string>;
+    return { label: tools[slug] ?? t.statusPill.working };
   }
-  return { label: "思考中" };
+  return { label: t.statusPill.thinking };
 }
 
 // Tabular figures for the 1Hz counter — proportional digits change the text

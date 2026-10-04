@@ -20,8 +20,10 @@ import { useDeleteChatSession } from "@/data/mutations/chat";
 import { useChatSessionPickerStore } from "@/data/stores/chat-session-picker-store";
 import { useWorkspaceStore } from "@/data/workspace-store";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/use-translation";
 
 export default function ChatSessionsRoute() {
+  const t = useT();
   const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const { data: sessions = [] } = useQuery(chatSessionsOptions(wsId));
   const activeSessionId = useChatSessionPickerStore((s) => s.activeSessionId);
@@ -30,12 +32,12 @@ export default function ChatSessionsRoute() {
 
   const confirmDelete = (session: ChatSession) => {
     Alert.alert(
-      "删除此聊天？",
-      session.title || "未命名聊天",
+      t.chat.deleteConfirmTitle,
+      session.title || t.chat.untitled,
       [
-        { text: "取消", style: "cancel" },
+        { text: t.common.cancel, style: "cancel" },
         {
-          text: "删除",
+          text: t.common.delete,
           style: "destructive",
           onPress: () => {
             deleteSession.mutate(session.id);
@@ -54,13 +56,13 @@ export default function ChatSessionsRoute() {
   return (
     <View className="flex-1">
       <View className="px-4 pt-4 pb-3">
-        <Text className="text-base font-semibold text-foreground">聊天</Text>
+        <Text className="text-base font-semibold text-foreground">{t.chat.title}</Text>
       </View>
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {sessions.length === 0 ? (
           <View className="px-4 py-8">
             <Text className="text-sm text-muted-foreground text-center">
-              还没有聊天。
+              {t.chat.noChats}
             </Text>
           </View>
         ) : (
@@ -100,11 +102,11 @@ export default function ChatSessionsRoute() {
                     )}
                     numberOfLines={1}
                   >
-                    {session.title || "未命名聊天"}
+                    {session.title || t.chat.untitled}
                   </Text>
                   {archived ? (
                     <Text className="text-xs text-muted-foreground mt-0.5">
-                      已归档
+                      {t.chat.archived}
                     </Text>
                   ) : null}
                 </View>

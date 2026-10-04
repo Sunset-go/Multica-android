@@ -10,13 +10,15 @@ import { projectDetailOptions } from "@/data/queries/projects";
 import { useUpdateProject } from "@/data/mutations/projects";
 import { useWorkspaceStore } from "@/data/workspace-store";
 import { useNativeSearchBar } from "@/lib/use-native-search-bar";
+import { useT } from "@/lib/i18n/use-translation";
 
 export default function ProjectLeadPickerRoute() {
+  const t = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const { data: project } = useQuery(projectDetailOptions(wsId, id));
   const updateProject = useUpdateProject(id);
-  const query = useNativeSearchBar("搜索成员或智能体", {
+  const query = useNativeSearchBar(t.projects.searchMembersOrAgents, {
     autoFocus: true,
   });
 

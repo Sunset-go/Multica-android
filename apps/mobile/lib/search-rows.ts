@@ -11,6 +11,7 @@ import type {
   SearchProjectResult,
 } from "@multica/core/types";
 import { partitionAggregatedSearchResults } from "@multica/core/search/cancelled-rank";
+import { getT } from "@/lib/i18n/use-translation";
 
 export type RowItem =
   | { kind: "header"; key: string; title: string }
@@ -47,7 +48,7 @@ export function buildSearchRows({
   if (!trimmedQuery) {
     if (recentIssues.length === 0) return [];
     return [
-      { kind: "header", key: "h-recent", title: "最近" },
+      { kind: "header", key: "h-recent", title: getT().search.recent },
       ...recentIssues.map<RowItem>((issue) => ({
         kind: "recent",
         key: `r-${issue.id}`,
@@ -64,19 +65,19 @@ export function buildSearchRows({
 
   const rows: RowItem[] = [];
   if (parts.liveProjects.length > 0) {
-    rows.push({ kind: "header", key: "h-projects", title: "项目" });
+    rows.push({ kind: "header", key: "h-projects", title: getT().search.projects });
     for (const project of parts.liveProjects) {
       rows.push({ kind: "project", key: `p-${project.id}`, project, query: trimmedQuery });
     }
   }
   if (parts.liveIssues.length > 0) {
-    rows.push({ kind: "header", key: "h-issues", title: "任务" });
+    rows.push({ kind: "header", key: "h-issues", title: getT().search.issues });
     for (const issue of parts.liveIssues) {
       rows.push({ kind: "issue", key: `i-${issue.id}`, issue, query: trimmedQuery });
     }
   }
   if (parts.hasCancelled) {
-    rows.push({ kind: "header", key: "h-cancelled", title: "已取消" });
+    rows.push({ kind: "header", key: "h-cancelled", title: getT().search.cancelled });
     for (const project of parts.cancelledProjects) {
       rows.push({ kind: "project", key: `p-${project.id}`, project, query: trimmedQuery });
     }

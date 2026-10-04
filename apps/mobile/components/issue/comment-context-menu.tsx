@@ -35,6 +35,7 @@ import {
 } from "@/data/mutations/issues";
 import { QUICK_EMOJIS } from "@/lib/quick-emojis";
 import { showActionSheet, showSelectableText } from "@/lib/action-sheet";
+import { useT, getT } from "@/lib/i18n/use-translation";
 
 const QUICK_ROW_SIZE = 5;
 
@@ -43,6 +44,7 @@ export function useCommentLongPress(
   issueId: string,
   issueIdentifier: string | undefined,
 ): { onLongPress: () => void; isPressed: boolean } {
+  const t = useT();
   const [isPressed, setIsPressed] = useState(false);
   const wsSlug = useWorkspaceStore((s) => s.currentWorkspaceSlug);
   const userId = useAuthStore((s) => s.user?.id);
@@ -80,20 +82,20 @@ export function useCommentLongPress(
       actions.push(action);
     };
 
-    push("回复", { kind: "reply" });
-    push("添加表情…", { kind: "react" });
+    push(t.issues.reply, { kind: "reply" });
+    push(t.issues.reactWith, { kind: "react" });
     if (hasContent) {
-      push("复制", { kind: "copy" });
-      push("选择文本", { kind: "select" });
+      push(t.common.copy, { kind: "copy" });
+      push(t.common.selectText, { kind: "select" });
     }
-    if (canCopyLink) push("复制链接", { kind: "copyLink" });
+    if (canCopyLink) push(t.common.copyLink, { kind: "copyLink" });
     if (isRoot) {
-      push(resolved ? "重新打开线程" : "解决线程", {
+      push(resolved ? t.issues.unresolveThread : t.issues.resolveThread, {
         kind: "resolve",
       });
     }
-    if (isOwn) push("删除", { kind: "delete" });
-    push("取消", { kind: "cancel" });
+    if (isOwn) push(t.common.delete, { kind: "delete" });
+    push(t.common.cancel, { kind: "cancel" });
 
     const cancelButtonIndex = options.length - 1;
     const destructiveButtonIndex = isOwn
@@ -161,7 +163,7 @@ export function useCommentLongPress(
               // can't surface in-place long-press selection on Android, so
               // present the comment as a plain selectable <Text> modal.
               showSelectableText({
-                title: "选择文本",
+                title: t.common.selectText,
                 content: entry.content ?? "",
               });
               return;
@@ -185,12 +187,12 @@ export function useCommentLongPress(
             return;
           case "delete":
             Alert.alert(
-              "删除评论？",
-              "此评论将被永久删除，回复也会被一并移除。无法撤销。",
+              t.issues.deleteCommentTitle,
+              t.issues.deleteCommentMsg,
               [
-                { text: "取消", style: "cancel" },
+                { text: t.common.cancel, style: "cancel" },
                 {
-                  text: "删除",
+                  text: t.common.delete,
                   style: "destructive",
                   onPress: () => deleteComment.mutate(entry.id),
                 },
@@ -209,6 +211,7 @@ export function useCommentLongPress(
     toggleReaction,
     deleteComment,
     resolveComment,
+    t,
   ]);
 
   return { onLongPress, isPressed };
@@ -222,9 +225,10 @@ function presentReactSheet(args: {
   issueId: string;
   toggle: (emoji: string, existing: Reaction | undefined) => void;
 }) {
+  const t = getT();
   const { entry, reactions, userId, wsSlug, issueId, toggle } = args;
   const emojis = QUICK_EMOJIS.slice(0, QUICK_ROW_SIZE);
-  const options = [...emojis, "更多表情…", "取消"];
+  const options = [...emojis, t.common.moreReactions, t.common.cancel];
   const cancelButtonIndex = options.length - 1;
 
   showActionSheet(

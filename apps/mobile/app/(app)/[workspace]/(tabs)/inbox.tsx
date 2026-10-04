@@ -24,18 +24,20 @@ import { useColorScheme } from "@/lib/use-color-scheme";
 import { THEME } from "@/lib/theme";
 import { deduplicateInboxItems } from "@/lib/inbox-display";
 import { showActionSheet } from "@/lib/action-sheet";
+import { useT } from "@/lib/i18n/use-translation";
 
 export default function Inbox() {
   const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const wsSlug = useWorkspaceStore((s) => s.currentWorkspaceSlug);
+  const t = useT();
   const { colorScheme } = useColorScheme();
   const { data: rawItems, isLoading, error, refetch } = useQuery(
     inboxListOptions(wsId),
   );
   useEffect(() => {
     if (!error || Platform.OS !== "android") return;
-    const message = error instanceof Error ? error.message : "未知错误";
-    ToastAndroid.show(`收件箱加载失败：${message}`, ToastAndroid.LONG);
+    const message = error instanceof Error ? error.message : t.common.unknownError;
+    ToastAndroid.show(t.inbox.loadFailed(message), ToastAndroid.LONG);
   }, [error]);
   // The FlatList `refreshing` prop is controlled — binding it to isRefetching
   // would show the pull-to-refresh spinner during background/auto refetches
@@ -90,18 +92,18 @@ export default function Inbox() {
   // the iOS red treatment + Alert confirm.
   const onPressMenu = () => {
     const options = [
-      "取消",
-      "全部标为已读",
-      "归档所有已读",
-      "归档已完成",
-      "归档全部",
+      t.common.cancel,
+      t.inbox.markAllRead,
+      t.inbox.archiveAllRead,
+      t.inbox.archiveCompleted,
+      t.inbox.archiveAll,
     ];
     showActionSheet(
       {
         options,
         cancelButtonIndex: 0,
         destructiveButtonIndex: 4,
-        title: "收件箱",
+        title: t.inbox.title,
       },
       (i) => {
         if (i === 1) markAllRead.mutate();
@@ -109,12 +111,12 @@ export default function Inbox() {
         else if (i === 3) archiveCompleted.mutate();
         else if (i === 4) {
           Alert.alert(
-            "归档全部？",
-            "这将归档所有收件箱条目，无论是否已读。您仍可在任务页面找到它们。",
+            t.inbox.archiveAllTitle,
+            t.inbox.archiveAllMsg,
             [
-              { text: "取消", style: "cancel" },
+              { text: t.common.cancel, style: "cancel" },
               {
-                text: "归档全部",
+                text: t.inbox.archiveAll,
                 style: "destructive",
                 onPress: () => archiveAll.mutate(),
               },
@@ -128,13 +130,13 @@ export default function Inbox() {
   return (
     <View className="flex-1 bg-background">
       <Header
-        title="收件箱"
+        title={t.inbox.title}
         right={
           <>
             <IconButton
               name="ellipsis-horizontal"
               onPress={onPressMenu}
-              accessibilityLabel="收件箱操作"
+              accessibilityLabel={t.inbox.actions}
             />
             <HeaderActions />
           </>
@@ -187,14 +189,15 @@ function InboxLoading() {
 }
 
 function InboxEmpty({ iconColor }: { iconColor: string }) {
+  const t = useT();
   return (
     <View className="flex-1 items-center justify-center px-8 gap-3">
       <Ionicons name="mail-open-outline" size={42} color={iconColor} />
       <Text className="text-base font-medium text-foreground text-center">
-        收件箱已清空
+        {t.inbox.empty}
       </Text>
       <Text className="text-sm text-muted-foreground text-center">
-        当有人 @提及您、分配任务，或智能体完成任务时，会显示在这里。
+        {t.inbox.emptyDesc}
       </Text>
     </View>
   );

@@ -106,6 +106,7 @@ import type { ImageSequenceBlock } from "@multica/core/attachments/image-sequenc
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { THEME } from "@/lib/theme";
 import { useCommentSelectStore } from "@/data/comment-select-store";
+import { useT } from "@/lib/i18n/use-translation";
 
 interface Props {
   issue: Issue;
@@ -670,6 +671,7 @@ function NewCommentChip({
   count: number;
   onPress: () => void;
 }) {
+  const t = useT();
   const { colorScheme } = useColorScheme();
   const fg = THEME[colorScheme].primaryForeground;
   return (
@@ -677,7 +679,7 @@ function NewCommentChip({
       onPress={onPress}
       className="absolute bottom-3 self-center px-3.5 py-1.5 rounded-full bg-primary active:opacity-80 flex-row items-center gap-1.5"
       accessibilityRole="button"
-      accessibilityLabel={`跳转到 ${count} 条新消息`}
+      accessibilityLabel={t.issues.jumpToNew(count)}
       style={{
         // shadow comes from system, not Tailwind — keeps the chip readable
         // against either light or dark timeline content beneath.
@@ -703,6 +705,7 @@ function NewCommentChip({
  * bottom. Same semantics as the "N new" chip, but always available.
  */
 function ScrollToLatestButton({ onPress }: { onPress: () => void }) {
+  const t = useT();
   const { colorScheme } = useColorScheme();
   const fg = THEME[colorScheme].foreground;
   const bg = THEME[colorScheme].background;
@@ -711,7 +714,7 @@ function ScrollToLatestButton({ onPress }: { onPress: () => void }) {
       onPress={onPress}
       className="absolute bottom-3 right-3 size-10 rounded-full items-center justify-center active:opacity-80 border border-border"
       accessibilityRole="button"
-      accessibilityLabel="滚动到最新"
+      accessibilityLabel={t.issues.scrollToLatest}
       style={{
         backgroundColor: bg,
         shadowColor: "#000",
@@ -734,6 +737,7 @@ function ScrollToLatestButton({ onPress }: { onPress: () => void }) {
  * Tapping scrolls to offset 0, showing the header + the earliest entry.
  */
 function ScrollToTopButton({ onPress }: { onPress: () => void }) {
+  const t = useT();
   const { colorScheme } = useColorScheme();
   const fg = THEME[colorScheme].foreground;
   const bg = THEME[colorScheme].background;
@@ -742,7 +746,7 @@ function ScrollToTopButton({ onPress }: { onPress: () => void }) {
       onPress={onPress}
       className="absolute bottom-16 right-3 size-10 rounded-full items-center justify-center active:opacity-80 border border-border"
       accessibilityRole="button"
-      accessibilityLabel="滚动到顶部"
+      accessibilityLabel={t.issues.scrollToTop}
       style={{
         backgroundColor: bg,
         shadowColor: "#000",

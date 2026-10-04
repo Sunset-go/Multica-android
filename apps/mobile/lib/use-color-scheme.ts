@@ -13,8 +13,8 @@
  * On first mount we async-read the saved preference; before the read
  * completes NativeWind's default behaviour applies (follow OS). This means
  * a kill-and-relaunch on a user who picked 'dark' on a light OS may briefly
- * flash light before the saved preference applies. Acceptable for now —
- * the alternative is a synchronous storage backend, which secure-store isn't.
+ * flash light before the saved preference applies. Acceptable for now — the
+ * alternative is a synchronous storage backend, which secure-store isn't.
  */
 import { useColorScheme as useNativewindColorScheme } from "nativewind";
 import { useEffect, useState } from "react";
@@ -32,15 +32,15 @@ export function useColorScheme() {
   useEffect(() => {
     let cancelled = false;
     SecureStore.getItemAsync(STORAGE_KEY)
-      .then((saved) => {
+      .then((savedTheme) => {
         if (cancelled) return;
-        if (saved === "light" || saved === "dark" || saved === "system") {
-          setPreferenceState(saved);
-          applyScheme(saved);
+        if (savedTheme === "light" || savedTheme === "dark" || savedTheme === "system") {
+          setPreferenceState(savedTheme);
+          applyScheme(savedTheme);
         }
       })
       .catch(() => {
-        // Read failures are non-fatal; keep default 'system'.
+        // Read failures are non-fatal; keep defaults.
       });
     return () => {
       cancelled = true;

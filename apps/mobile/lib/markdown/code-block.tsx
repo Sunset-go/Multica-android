@@ -38,6 +38,7 @@ import Svg, { Path, Rect } from "react-native-svg";
 import { Text } from "@/components/ui/text";
 import { THEME } from "@/lib/theme";
 import { useColorScheme } from "@/lib/use-color-scheme";
+import { useT } from "@/lib/i18n/use-translation";
 import {
   CODE_BLOCK_CONTAINER_CLASS,
   CODE_BLOCK_LANG_LABEL_CLASS,
@@ -150,6 +151,7 @@ function HighlightedCode({
 function CodeBlockHeader({ code, lang }: Props) {
   const { isDarkColorScheme } = useColorScheme();
   const t = isDarkColorScheme ? THEME.dark : THEME.light;
+  const tt = useT();
   const [copied, setCopied] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -192,7 +194,7 @@ function CodeBlockHeader({ code, lang }: Props) {
         onPress={onCopy}
         hitSlop={8}
         accessibilityRole="button"
-        accessibilityLabel={copied ? "代码已复制" : "复制代码"}
+        accessibilityLabel={copied ? tt.code.codeCopied : tt.code.copyCode}
       >
         {copied ? (
           <CheckIcon color={t.success} />

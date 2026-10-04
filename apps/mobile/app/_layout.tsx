@@ -10,14 +10,14 @@ import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { ThemeProvider } from "@react-navigation/native";
 import { PortalHost } from "@rn-primitives/portal";
 import { api } from "@/data/api";
-import { queryClient } from "@/data/query-client";
+import { queryClient, ensureQueryCacheRestored } from "@/data/query-client";
 import { useAuthStore } from "@/data/auth-store";
 import { useWorkspaceStore } from "@/data/workspace-store";
-import { ensureQueryCacheRestored } from "@/data/query-client";
 import { LightboxProvider, prewarmHighlighter } from "@/lib/markdown";
-import { NAV_THEME } from "@/lib/theme";
+import { getNavTheme } from "@/lib/theme";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { ActionSheetHost } from "@/lib/action-sheet";
+import { useLanguageStore } from "@/data/language-store";
 
 // Kick off Shiki highlighter init at module load — fires once per process,
 // finishes before the user navigates to any screen with a code block. If
@@ -61,6 +61,12 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
 
 export default function RootLayout() {
   const { colorScheme, isDarkColorScheme } = useColorScheme();
+  const restoreLocale = useLanguageStore((s) => s.restoreLocale);
+
+  // Restore the persisted language preference on cold start.
+  useEffect(() => {
+    void restoreLocale();
+  }, [restoreLocale]);
   // Block first render until the disk-persisted query cache is hydrated.
   // Without this, inbox/chat queries fire before the cached lists restore
   // and cold start shows loading spinners instead of last-known data
@@ -76,7 +82,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <KeyboardProvider>
           <QueryClientProvider client={queryClient}>
-            <ThemeProvider value={NAV_THEME[colorScheme]}>
+            <ThemeProvider value={getNavTheme(colorScheme)}>
               <AuthInitializer>
                 <LightboxProvider>
                   <StatusBar style={isDarkColorScheme ? "light" : "dark"} />

@@ -31,6 +31,7 @@ import type { TriggerRef } from "@rn-primitives/dropdown-menu";
 import { useWorkspaceStore } from "@/data/workspace-store";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { THEME } from "@/lib/theme";
+import { useT } from "@/lib/i18n/use-translation";
 import {
   tabBarBottomPadding,
   tabBarContentHeight,
@@ -46,6 +47,8 @@ import { MoreTabDropdownAnchor } from "@/components/nav/more-tab-dropdown";
 // character renders as a perfect circle. Overriding minWidth/fontSize here
 // breaks that geometry. Text color is auto-derived from backgroundColor
 // luminance by Badge itself (white on brand blue).
+// NOTE: Badge is used only on the tab bar — the constant below uses the
+// default brand color. The badge is a colored dot; visual differences are minor.
 const BADGE_STYLE = {
   backgroundColor: THEME.light.brand,
 };
@@ -73,7 +76,8 @@ function TabBarButton({ style, children, ...rest }: BottomTabBarButtonProps) {
 
 export default function TabsLayout() {
   const { colorScheme } = useColorScheme();
-  const t = THEME[colorScheme];
+  const t = useT();
+  const tTheme = THEME[colorScheme];
   const insets = useSafeAreaInsets();
 
   const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
@@ -87,7 +91,7 @@ export default function TabsLayout() {
   const bottomPadding = tabBarBottomPadding(insets);
   const contentHeight = tabBarContentHeight();
   const tabBarStyle = {
-    backgroundColor: t.background,
+    backgroundColor: tTheme.background,
     paddingBottom: bottomPadding,
     ...(Platform.OS === "android"
       ? { height: contentHeight + bottomPadding }
@@ -111,8 +115,8 @@ export default function TabsLayout() {
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: t.foreground,
-          tabBarInactiveTintColor: t.mutedForeground,
+          tabBarActiveTintColor: tTheme.foreground,
+          tabBarInactiveTintColor: tTheme.mutedForeground,
           tabBarStyle,
           tabBarButton: TabBarButton,
           tabBarLabelStyle: { fontSize: 16 },
@@ -121,7 +125,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="inbox"
           options={{
-            title: "收件箱",
+            title: t.tabs.inbox,
             tabBarBadge: inboxBadge,
             tabBarBadgeStyle: BADGE_STYLE,
             tabBarIcon: ({ color, size, focused }) => (
@@ -136,7 +140,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="my-issues"
           options={{
-            title: "我的任务",
+            title: t.tabs.myIssues,
             tabBarIcon: ({ color, size, focused }) => (
               <Image
                 source={focused ? "sf:checklist" : "sf:checklist.unchecked"}
@@ -149,7 +153,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="chat"
           options={{
-            title: "聊天",
+            title: t.tabs.chat,
             tabBarBadge: chatBadge,
             tabBarBadgeStyle: BADGE_STYLE,
             tabBarIcon: ({ color, size, focused }) => (
@@ -164,7 +168,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="more"
           options={{
-            title: "更多",
+            title: t.tabs.more,
             tabBarIcon: ({ color, size }) => (
               <Image
                 source="sf:ellipsis"

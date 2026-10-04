@@ -22,11 +22,13 @@ import * as Haptics from "expo-haptics";
 import type { ChatMessage } from "@multica/core/types";
 import { useChatSelectStore } from "@/data/chat-select-store";
 import { showActionSheet, showSelectableText } from "@/lib/action-sheet";
+import { useT } from "@/lib/i18n/use-translation";
 
 export function useChatMessageLongPress(
   message: ChatMessage,
 ): { onLongPress: () => void; isPressed: boolean } {
   const [isPressed, setIsPressed] = useState(false);
+  const t = useT();
 
   const onLongPress = useCallback(() => {
     const hasContent = !!message.content;
@@ -47,10 +49,10 @@ export function useChatMessageLongPress(
     };
 
     if (hasContent) {
-      push("复制", { kind: "copy" });
-      push("选择文本", { kind: "select" });
+      push(t.common.copy, { kind: "copy" });
+      push(t.common.selectText, { kind: "select" });
     }
-    push("取消", { kind: "cancel" });
+    push(t.common.cancel, { kind: "cancel" });
 
     const cancelButtonIndex = options.length - 1;
 
@@ -78,7 +80,7 @@ export function useChatMessageLongPress(
               // selectable <Text> modal instead. iOS keeps the native
               // magnifier path.
               showSelectableText({
-                title: "选择文本",
+                title: t.common.selectText,
                 content: message.content ?? "",
               });
               return;

@@ -8,11 +8,13 @@ import { CardPressable } from "@/components/ui/card";
 import { workspaceListOptions } from "@/data/queries/workspaces";
 import { useAuthStore } from "@/data/auth-store";
 import { useWorkspaceStore } from "@/data/workspace-store";
+import { useT } from "@/lib/i18n/use-translation";
 
 export default function SelectWorkspace() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const setCurrentWorkspace = useWorkspaceStore((s) => s.setCurrentWorkspace);
+  const t = useT();
   const { data, isLoading, error, refetch } = useQuery(workspaceListOptions());
 
   const onSelect = async (id: string, slug: string) => {
@@ -25,14 +27,14 @@ export default function SelectWorkspace() {
       <ScrollView contentContainerClassName="px-6 py-6 gap-6">
         <View className="gap-1">
           <Text className="text-xs uppercase tracking-wider text-muted-foreground">
-            当前登录
+            {t.workspaceSelect.signedInAs}
           </Text>
           <Text className="text-base text-foreground">{user?.email}</Text>
         </View>
 
         <View className="gap-3">
           <Text className="text-2xl font-semibold text-foreground">
-            选择工作区
+            {t.workspaceSelect.selectWorkspace}
           </Text>
 
           {isLoading ? (
@@ -42,16 +44,16 @@ export default function SelectWorkspace() {
           ) : error ? (
             <View className="gap-3">
               <Text className="text-sm text-destructive">
-                工作区加载失败：{" "}
-                {error instanceof Error ? error.message : "未知错误"}
+                {t.workspaceSelect.loadFailed}: {" "}
+                {error instanceof Error ? error.message : t.common.unknownError}
               </Text>
               <Button variant="outline" onPress={() => refetch()}>
-                <Text>重试</Text>
+                <Text>{t.common.retry}</Text>
               </Button>
             </View>
           ) : !data || data.length === 0 ? (
             <Text className="text-sm text-muted-foreground">
-              您尚未加入任何工作区。请联系工作区管理员邀请您。
+              {t.workspaceSelect.noWorkspaces}
             </Text>
           ) : (
             <View className="gap-3">
@@ -79,7 +81,7 @@ export default function SelectWorkspace() {
 
         <View className="pt-4 border-t border-border">
           <Button variant="outline" onPress={() => logout()}>
-            <Text>退出登录</Text>
+            <Text>{t.workspaceSelect.signOut}</Text>
           </Button>
         </View>
       </ScrollView>

@@ -28,6 +28,7 @@ import { useAuthStore } from "@/data/auth-store";
 import { api } from "@/data/api";
 import type { FileAsset } from "@/data/api";
 import { showActionSheet } from "@/lib/action-sheet";
+import { useT } from "@/lib/i18n/use-translation";
 
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5 MB — matches what's reasonable on cellular.
 
@@ -43,6 +44,7 @@ function initialsOf(name: string | undefined): string {
 }
 
 export default function ProfileSettingsScreen() {
+  const t = useT();
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
 
@@ -59,7 +61,7 @@ export default function ProfileSettingsScreen() {
   const dirty = name.trim() !== (user?.name ?? "") && name.trim().length > 0;
 
   const handleAvatarPick = () => {
-    const options = ["拍照", "从相册选择", "删除照片", "取消"];
+    const options = [t.profile.takePhoto, t.profile.chooseFromLibrary, t.profile.removePhoto, t.profile.cancel];
     const removeIndex = user?.avatar_url ? 2 : -1;
     const cancelIndex = user?.avatar_url ? 3 : 2;
     const visibleOptions = user?.avatar_url ? options : options.filter((_, i) => i !== 2);
@@ -82,7 +84,7 @@ export default function ProfileSettingsScreen() {
   const pickFromCamera = async () => {
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert("需要权限", "需要相机权限才能拍照。");
+      Alert.alert(t.profile.permissionNeeded, t.profile.cameraAccessRequired);
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
@@ -106,7 +108,7 @@ export default function ProfileSettingsScreen() {
 
   const uploadAvatar = async (asset: ImagePicker.ImagePickerAsset) => {
     if (asset.fileSize && asset.fileSize > MAX_AVATAR_BYTES) {
-      Alert.alert("图片过大", "请选择 5 MB 以内的图片。");
+      Alert.alert(t.profile.imageTooLarge, t.profile.imageTooLargeDesc);
       return;
     }
     const fileAsset: FileAsset = {
@@ -124,8 +126,8 @@ export default function ProfileSettingsScreen() {
       setUser(updated);
     } catch (err) {
       Alert.alert(
-        "上传失败",
-        err instanceof Error ? err.message : "无法上传头像。",
+        t.profile.uploadFailed,
+        err instanceof Error ? err.message : t.profile.uploadFailedDesc,
       );
     } finally {
       setUploading(false);
@@ -139,8 +141,8 @@ export default function ProfileSettingsScreen() {
       setUser(updated);
     } catch (err) {
       Alert.alert(
-        "删除失败",
-        err instanceof Error ? err.message : "无法删除头像。",
+        t.profile.removeFailed,
+        err instanceof Error ? err.message : t.profile.removeFailedDesc,
       );
     } finally {
       setUploading(false);
@@ -155,8 +157,8 @@ export default function ProfileSettingsScreen() {
       setUser(updated);
     } catch (err) {
       Alert.alert(
-        "保存失败",
-        err instanceof Error ? err.message : "无法更新个人资料。",
+        t.profile.saveFailed,
+        err instanceof Error ? err.message : t.profile.saveFailedDesc,
       );
     } finally {
       setSaving(false);
@@ -171,7 +173,7 @@ export default function ProfileSettingsScreen() {
     >
       <View className="items-center gap-3">
         <Pressable onPress={handleAvatarPick} disabled={uploading}>
-          <Avatar alt={user?.name ?? "您的头像"} className="size-24">
+          <Avatar alt={user?.name ?? t.profile.yourAvatar} className="size-24">
             {user?.avatar_url ? (
               <AvatarImage source={{ uri: user.avatar_url }} />
             ) : null}
@@ -186,7 +188,7 @@ export default function ProfileSettingsScreen() {
           <ActivityIndicator />
         ) : (
           <Text className="text-xs text-muted-foreground">
-            点击更换头像
+            {t.profile.tapToChange}
           </Text>
         )}
       </View>
@@ -195,31 +197,31 @@ export default function ProfileSettingsScreen() {
 
       <View className="gap-4">
         <View>
-          <Text className="text-xs text-muted-foreground mb-1.5">姓名</Text>
+          <Text className="text-xs text-muted-foreground mb-1.5">{t.profile.name}</Text>
           <TextField
             value={name}
             onChangeText={setName}
-            placeholder="您的姓名"
+            placeholder={t.profile.namePlaceholder}
             autoCapitalize="words"
             autoCorrect={false}
             returnKeyType="done"
           />
         </View>
         <View>
-          <Text className="text-xs text-muted-foreground mb-1.5">邮箱</Text>
+          <Text className="text-xs text-muted-foreground mb-1.5">{t.profile.email}</Text>
           <View className="rounded-md border border-border bg-muted px-3 py-2.5">
             <Text className="text-base text-muted-foreground">
               {user?.email ?? "—"}
             </Text>
           </View>
           <Text className="text-xs text-muted-foreground mt-1.5">
-            邮箱在注册时设置，无法在此修改。
+            {t.profile.emailReadOnly}
           </Text>
         </View>
       </View>
 
       <Button onPress={handleSave} disabled={!dirty || saving}>
-        <Text>{saving ? "保存中…" : "保存"}</Text>
+        <Text>{saving ? t.profile.saving : t.profile.save}</Text>
       </Button>
     </ScrollView>
   );

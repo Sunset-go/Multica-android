@@ -27,8 +27,10 @@ import {
 import { projectDetailOptions } from "@/data/queries/projects";
 import { useUpdateProject } from "@/data/mutations/projects";
 import { useWorkspaceStore } from "@/data/workspace-store";
+import { useT } from "@/lib/i18n/use-translation";
 
 export default function EditProject() {
+  const t = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const detail = useQuery(projectDetailOptions(wsId, id));
@@ -68,18 +70,18 @@ export default function EditProject() {
       return;
     }
     Alert.alert(
-      "放弃更改？",
-      "您对该项目的修改将丢失。",
+      t.projects.discardTitle,
+      t.projects.discardMsg,
       [
-        { text: "继续编辑", style: "cancel" },
+        { text: t.common.keepEditing, style: "cancel" },
         {
-          text: "放弃",
+          text: t.common.discard,
           style: "destructive",
           onPress: () => router.back(),
         },
       ],
     );
-  }, [dirty]);
+  }, [dirty, t]);
 
   const onSave = useCallback(() => {
     if (!canSave) return;
@@ -92,20 +94,20 @@ export default function EditProject() {
       onSuccess: () => router.back(),
       onError: (err) => {
         Alert.alert(
-          "保存失败",
-          err instanceof Error ? err.message : "未知错误",
+          t.issues.saveFailed,
+          err instanceof Error ? err.message : t.common.unknownError,
         );
       },
     });
-  }, [canSave, title, description, icon, update]);
+  }, [canSave, title, description, icon, update, t]);
 
   const headerLeft = useCallback(() => {
     return (
       <Pressable onPress={onCancel} className="px-1 py-1">
-        <Text className="text-base text-brand">取消</Text>
+        <Text className="text-base text-brand">{t.common.cancel}</Text>
       </Pressable>
     );
-  }, [onCancel]);
+  }, [onCancel, t]);
 
   const headerRight = useCallback(() => {
     return (
@@ -115,11 +117,11 @@ export default function EditProject() {
         className={canSave ? "px-1 py-1" : "px-1 py-1 opacity-40"}
       >
         <Text className="text-base text-brand font-semibold">
-          {update.isPending ? "保存中…" : "保存"}
+          {update.isPending ? t.projects.saving : t.projects.save}
         </Text>
       </Pressable>
     );
-  }, [canSave, onSave, update.isPending]);
+  }, [canSave, onSave, update.isPending, t]);
 
   return (
     <>
@@ -134,10 +136,10 @@ export default function EditProject() {
           keyboardShouldPersistTaps="handled"
         >
           {!detail.data ? (
-            <Text className="text-sm text-muted-foreground">加载中…</Text>
+            <Text className="text-sm text-muted-foreground">{t.projects.loading}</Text>
           ) : (
             <>
-              <Field label="图标（表情）">
+              <Field label={t.projects.iconEmoji}>
                 <TextInput
                   value={icon}
                   onChangeText={(v) => {
@@ -153,11 +155,11 @@ export default function EditProject() {
                 />
               </Field>
 
-              <Field label="标题">
+              <Field label={t.projects.titleField}>
                 <TextInput
                   value={title}
                   onChangeText={setTitle}
-                  placeholder="项目标题"
+                  placeholder={t.projects.titlePlaceholder}
                   placeholderTextColor={MOBILE_PLACEHOLDER_COLOR}
                   className="text-base text-foreground bg-secondary/50 rounded-md px-3 py-2"
                   autoFocus={!detail.data?.title}
@@ -165,11 +167,11 @@ export default function EditProject() {
                 />
               </Field>
 
-              <Field label="描述">
+              <Field label={t.projects.descriptionField}>
                 <AutosizeTextArea
                   value={description}
                   onChangeText={setDescription}
-                  placeholder="这个项目是关于什么的？"
+                  placeholder={t.projects.descriptionPlaceholder}
                   className="bg-secondary/50 rounded-md px-3 py-2"
                   minHeight={MIN_BODY_INPUT_HEIGHT_PX}
                 />

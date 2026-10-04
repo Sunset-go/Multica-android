@@ -44,8 +44,10 @@ import { useAuthStore } from "@/data/auth-store";
 import { useProjectRealtime } from "@/data/realtime/use-project-realtime";
 import { useWorkspaceStore } from "@/data/workspace-store";
 import { showActionSheet } from "@/lib/action-sheet";
+import { useT } from "@/lib/i18n/use-translation";
 
 export default function ProjectDetail() {
+  const t = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const wsSlug = useWorkspaceStore((s) => s.currentWorkspaceSlug);
@@ -88,11 +90,11 @@ export default function ProjectDetail() {
     if (!project) return;
     const wsUrl = process.env.EXPO_PUBLIC_WEB_URL;
     const options = [
-      "取消",
-      isPinned ? "取消固定" : "固定",
-      "编辑详情",
-      ...(wsUrl ? ["在网页中打开"] : []),
-      "删除",
+      t.common.cancel,
+      isPinned ? t.projects.unpin : t.projects.pin,
+      t.projects.editDetails,
+      ...(wsUrl ? [t.common.openOnWeb] : []),
+      t.projects.delete,
     ];
     const destructiveIndex = options.length - 1;
     showActionSheet(
@@ -103,19 +105,19 @@ export default function ProjectDetail() {
       },
       (i) => {
         const label = options[i];
-        if (label === "固定") {
+        if (label === t.projects.pin) {
           createPin.mutate({ item_type: "project", item_id: project.id });
           return;
         }
-        if (label === "取消固定") {
+        if (label === t.projects.unpin) {
           deletePin.mutate({ itemType: "project", itemId: project.id });
           return;
         }
-        if (label === "编辑详情") {
+        if (label === t.projects.editDetails) {
           if (wsSlug) router.push(`/${wsSlug}/project/${id}/edit`);
           return;
         }
-        if (label === "在网页中打开" && wsUrl) {
+        if (label === t.common.openOnWeb && wsUrl) {
           Linking.openURL(`${wsUrl}/${wsSlug}/projects/${id}`);
           return;
         }
@@ -128,12 +130,12 @@ export default function ProjectDetail() {
 
   const onDelete = () => {
     Alert.alert(
-      "删除项目？",
-      "此操作无法撤销。项目内的任务将不再归属于任何项目。",
+      t.projects.deleteTitle,
+      t.projects.deleteMsg,
       [
-        { text: "取消", style: "cancel" },
+        { text: t.common.cancel, style: "cancel" },
         {
-          text: "删除",
+          text: t.common.delete,
           style: "destructive",
           onPress: () => {
             deleteProject.mutate(undefined, {
@@ -149,14 +151,14 @@ export default function ProjectDetail() {
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
       <Stack.Screen
         options={{
-          title: project?.title || "项目",
-          headerBackTitle: "返回",
+          title: project?.title || t.screens.project,
+          headerBackTitle: t.common.back,
           headerRight: project
             ? () => (
                 <IconButton
                   name="ellipsis-horizontal"
                   onPress={onPressMore}
-                  accessibilityLabel="项目操作"
+                  accessibilityLabel={t.projects.projectActions}
                 />
               )
             : undefined,
@@ -169,13 +171,13 @@ export default function ProjectDetail() {
       ) : detail.error || projectMissing ? (
         <View className="flex-1 items-center justify-center px-6 gap-3">
           <Text className="text-sm text-destructive text-center">
-            项目加载失败：{" "}
+            {t.projects.loadFailed}：{" "}
             {detail.error instanceof Error
               ? detail.error.message
-              : "未找到"}
+              : t.projects.notFound}
           </Text>
           <Button variant="outline" onPress={() => detail.refetch()}>
-            <Text>重试</Text>
+            <Text>{t.common.retry}</Text>
           </Button>
         </View>
       ) : (

@@ -62,6 +62,7 @@ import { formatElapsedMs } from "@/lib/format-elapsed";
 import { cn } from "@/lib/utils";
 import { useChatSelectStore } from "@/data/chat-select-store";
 import { useChatMessageLongPress } from "./message-long-press";
+import { useT } from "@/lib/i18n/use-translation";
 import { ChatEmptyState } from "./chat-empty-state";
 import { ChatTimeline } from "./chat-timeline";
 // Reuse the comment thread's standalone attachment list — same design web
@@ -118,6 +119,7 @@ export function ChatMessageList({
   // Pressable below. When null, the Pressable stays disabled and every tap
   // passes through to the list cells / bubble long-press wrappers normally.
   const selectingId = useChatSelectStore((s) => s.selectingId);
+  const t = useT();
 
   // Every image in this session, in message order (MUL-5752), so tapping one
   // opens the lightbox at its position and a swipe walks the rest.
@@ -407,6 +409,7 @@ function AssistantRow({
   onQuickAction?: (action: ChatQuickAction) => void | Promise<unknown>;
   quickActionsDisabled: boolean;
 }) {
+  const t = useT();
   // Read the cached timeline if any. `enabled` (in taskMessagesOptions) is
   // gated on isTaskMessageTaskId — optimistic id prefixes never fetch, so
   // freshly-sent messages don't spam the API while waiting for the real
@@ -427,7 +430,7 @@ function AssistantRow({
       ) : null}
       {isNoResponse ? (
         <Text className="text-sm italic text-muted-foreground">
-          智能体在本回合完成，没有文字回复。
+          {t.chat.noTextReply}
         </Text>
       ) : (
         <Markdown
@@ -483,6 +486,7 @@ function QuickActions({
 }) {
   const [submitting, setSubmitting] = useState(false);
   const blocked = disabled || submitting;
+  const t = useT();
 
   const handleSelect = async (action: ChatQuickAction) => {
     if (blocked) return;
@@ -500,7 +504,7 @@ function QuickActions({
   return (
     <View
       className="flex-row flex-wrap gap-2 pt-0.5"
-      accessibilityLabel="推荐的后续操作"
+      accessibilityLabel={t.chat.suggestedFollowups}
     >
       {actions.slice(0, 3).map((action, index) => (
         <Pressable
@@ -545,12 +549,13 @@ function ElapsedCaption({
   variant: "replied" | "failed" | "finished";
   elapsedMs: number;
 }) {
+  const t = useT();
   const label =
     variant === "replied"
-      ? `已在 ${formatElapsedMs(elapsedMs)} 内回复`
+      ? t.chat.repliedIn(formatElapsedMs(elapsedMs))
       : variant === "finished"
-        ? `已在 ${formatElapsedMs(elapsedMs)} 内完成`
-        : `在 ${formatElapsedMs(elapsedMs)} 后失败`;
+        ? t.chat.finishedIn(formatElapsedMs(elapsedMs))
+        : t.chat.failedAfter(formatElapsedMs(elapsedMs));
   return (
     <Text className="text-xs text-muted-foreground/80 mt-1">{label}</Text>
   );
@@ -570,6 +575,7 @@ function FailureBubble({
   longPress: ReturnType<typeof useChatMessageLongPress>;
 }) {
   const hasRawError = rawError.trim().length > 0;
+  const t = useT();
 
   // B6: pass `selectable={isSelecting}` rather than hard-coding
   // `selectable` — otherwise UIKit's text-selection gesture pre-empts
@@ -594,7 +600,7 @@ function FailureBubble({
             <CollapsibleTrigger asChild>
               <View
                 accessibilityRole="button"
-                accessibilityLabel="显示错误详情"
+                accessibilityLabel={t.chat.showDetails}
                 className="mt-1 flex-row items-center gap-1 active:opacity-70"
               >
                 <Ionicons
@@ -603,7 +609,7 @@ function FailureBubble({
                   color="#71717a"
                 />
                 <Text className="text-xs text-muted-foreground">
-                  显示详情
+                  {t.chat.showDetails}
                 </Text>
               </View>
             </CollapsibleTrigger>

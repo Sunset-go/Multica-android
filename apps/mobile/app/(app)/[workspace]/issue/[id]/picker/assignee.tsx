@@ -11,13 +11,15 @@ import { issueDetailOptions } from "@/data/queries/issues";
 import { useUpdateIssue } from "@/data/mutations/issues";
 import { useWorkspaceStore } from "@/data/workspace-store";
 import { useNativeSearchBar } from "@/lib/use-native-search-bar";
+import { useT } from "@/lib/i18n/use-translation";
 
 export default function IssueAssigneePickerRoute() {
+  const t = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const { data: issue } = useQuery(issueDetailOptions(wsId, id));
   const updateIssue = useUpdateIssue(id);
-  const query = useNativeSearchBar("搜索人员", { autoFocus: true });
+  const query = useNativeSearchBar(t.issues.searchPeople, { autoFocus: true });
 
   const value =
     issue?.assignee_type && issue?.assignee_id

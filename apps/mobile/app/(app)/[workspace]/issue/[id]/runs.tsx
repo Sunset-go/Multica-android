@@ -23,6 +23,7 @@ import {
   issueTasksOptions,
 } from "@/data/queries/issues";
 import { useWorkspaceStore } from "@/data/workspace-store";
+import { useT } from "@/lib/i18n/use-translation";
 
 const PAST_STATUS_ORDER: Record<AgentTask["status"], number> = {
   failed: 0,
@@ -35,6 +36,7 @@ const PAST_STATUS_ORDER: Record<AgentTask["status"], number> = {
 };
 
 export default function IssueRunsRoute() {
+  const t = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const { data: activeTasks = [] } = useQuery(
@@ -68,20 +70,20 @@ export default function IssueRunsRoute() {
     <View className="flex-1">
       <View className="px-4 pt-4 pb-3">
         <Text className="text-base font-semibold text-foreground">
-          智能体运行
+          {t.issues.agentRuns}
         </Text>
       </View>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View className="px-4 gap-3 pb-4">
           {active.length > 0 ? (
-            <Section title="进行中">
+            <Section title={t.issues.active}>
               {active.map((task) => (
                 <RunRow key={task.id} task={task} issueId={id} />
               ))}
             </Section>
           ) : null}
           {past.length > 0 ? (
-            <Section title="历史记录">
+            <Section title={t.issues.past}>
               {past.map((task) => (
                 <RunRow key={task.id} task={task} issueId={id} />
               ))}

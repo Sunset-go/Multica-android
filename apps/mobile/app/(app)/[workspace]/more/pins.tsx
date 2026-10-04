@@ -47,8 +47,10 @@ import { useAuthStore } from "@/data/auth-store";
 import { useWorkspaceStore } from "@/data/workspace-store";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { THEME } from "@/lib/theme";
+import { useT } from "@/lib/i18n/use-translation";
 
 export default function PinsPage() {
+  const t = useT();
   const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const wsSlug = useWorkspaceStore((s) => s.currentWorkspaceSlug);
   const userId = useAuthStore((s) => s.user?.id ?? null);
@@ -76,11 +78,11 @@ export default function PinsPage() {
     return (
       <View className="flex-1 bg-background px-4 gap-3 pt-4">
         <Text className="text-sm text-destructive">
-          固定项加载失败：{" "}
-          {error instanceof Error ? error.message : "未知错误"}
+          {t.pins.loadFailed}：{" "}
+          {error instanceof Error ? error.message : t.common.unknownError}
         </Text>
         <Button variant="outline" onPress={() => refetch()}>
-          <Text>重试</Text>
+          <Text>{t.common.retry}</Text>
         </Button>
       </View>
     );
@@ -90,7 +92,7 @@ export default function PinsPage() {
     return (
       <View className="flex-1 items-center justify-center bg-background px-6">
         <Text className="text-sm text-muted-foreground text-center">
-          还没有固定项。从任务或项目的操作菜单中固定它们以显示在这里。
+          {t.pins.noPinsDesc}
         </Text>
       </View>
     );
@@ -213,15 +215,16 @@ function MissingPinRow({
   itemType: "issue" | "project";
   itemId: string;
 }) {
+  const t = useT();
   const { colorScheme } = useColorScheme();
   const deletePin = useDeletePin();
+  const typeLabel =
+    itemType === "issue" ? t.pins.unavailableIssue : t.pins.unavailableProject;
   return (
     <Pressable
       onPress={() => deletePin.mutate({ itemType, itemId })}
       className="px-4 py-3 flex-row items-center gap-3 active:bg-secondary opacity-60"
-      accessibilityLabel={
-        `${itemType === "issue" ? "任务" : "项目"} 不可用，点击取消固定`
-      }
+      accessibilityLabel={t.pins.unavailableTapToUnpin(typeLabel)}
     >
       <Ionicons
         name="alert-circle-outline"
@@ -229,7 +232,7 @@ function MissingPinRow({
         color={THEME[colorScheme].mutedForeground}
       />
       <Text className="flex-1 text-sm text-muted-foreground" numberOfLines={1}>
-        {`${itemType === "issue" ? "任务" : "项目"} 不可用 — 点击取消固定`}
+        {t.pins.unavailableTapToUnpin(typeLabel)}
       </Text>
     </Pressable>
   );

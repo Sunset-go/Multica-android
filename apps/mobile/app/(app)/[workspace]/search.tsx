@@ -48,6 +48,7 @@ import { issueDetailOptions } from "@/data/queries/issues";
 import { STATUS_LABEL } from "@/lib/issue-status";
 import { projectStatusLabel } from "@/lib/project-status";
 import { buildSearchRows, type RowItem } from "@/lib/search-rows";
+import { useT } from "@/lib/i18n/use-translation";
 
 const DEBOUNCE_MS = 300;
 const ISSUE_LIMIT = 20;
@@ -294,6 +295,7 @@ interface SearchResultsState {
 const EMPTY_RESULTS: SearchResultsState = { issues: [], projects: [] };
 
 export default function SearchModal() {
+  const t = useT();
   const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const slug = useWorkspaceStore((s) => s.currentWorkspaceSlug);
 
@@ -433,7 +435,7 @@ export default function SearchModal() {
           <TextInput
             value={query}
             onChangeText={handleChange}
-            placeholder="搜索任务和项目"
+            placeholder={t.projects.searchIssuesAndProjects}
             placeholderTextColor="#a1a1aa"
             autoFocus
             autoCorrect={false}
@@ -459,13 +461,13 @@ export default function SearchModal() {
             ) : trimmedQuery && !hasResults ? (
               <View className="items-center justify-center py-12 px-6">
                 <Text className="text-sm text-muted-foreground text-center">
-                  没有 &ldquo;{trimmedQuery}&rdquo; 的结果
+                  {t.projects.noResults}
                 </Text>
               </View>
             ) : !trimmedQuery && recentIssues.length === 0 ? (
               <View className="items-center justify-center py-12 px-6">
                 <Text className="text-sm text-muted-foreground text-center">
-                  输入以搜索任务和项目。
+                  {t.projects.typeToSearch}
                 </Text>
               </View>
             ) : null

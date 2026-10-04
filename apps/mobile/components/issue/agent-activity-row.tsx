@@ -26,12 +26,14 @@ import {
 import { useWorkspaceStore } from "@/data/workspace-store";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { THEME } from "@/lib/theme";
+import { useT } from "@/lib/i18n/use-translation";
 
 interface Props {
   issueId: string;
 }
 
 export function AgentActivityRow({ issueId }: Props) {
+  const t = useT();
   const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const wsSlug = useWorkspaceStore((s) => s.currentWorkspaceSlug);
   const { colorScheme } = useColorScheme();
@@ -73,34 +75,49 @@ export function AgentActivityRow({ issueId }: Props) {
     >
       {activeCount > 0 ? (
         <ActiveContent
-          actors={activeTasks.map<StackActor>((t) => ({
+          actors={activeTasks.map<StackActor>((task) => ({
             type: "agent",
-            id: t.agent_id,
+            id: task.agent_id,
           }))}
+          label={t.issues.working}
         />
       ) : (
-        <IdleContent count={pastCount} mutedFg={mutedFg} />
+        <IdleContent count={pastCount} mutedFg={mutedFg} runsLabel={t.issues.runs(pastCount)} />
       )}
       <Ionicons name="chevron-forward" size={16} color={mutedFg} />
     </Pressable>
   );
 }
 
-function ActiveContent({ actors }: { actors: StackActor[] }) {
+function ActiveContent({
+  actors,
+  label,
+}: {
+  actors: StackActor[];
+  label: string;
+}) {
   return (
     <View className="flex-1 flex-row items-center gap-2">
       <AvatarStack actors={actors} max={3} size={24} />
       <PulseDot />
-      <Text className="text-sm font-medium text-foreground">工作中</Text>
+      <Text className="text-sm font-medium text-foreground">{label}</Text>
     </View>
   );
 }
 
-function IdleContent({ count, mutedFg }: { count: number; mutedFg: string }) {
+function IdleContent({
+  count,
+  mutedFg,
+  runsLabel,
+}: {
+  count: number;
+  mutedFg: string;
+  runsLabel: string;
+}) {
   return (
     <View className="flex-1 flex-row items-center gap-2">
       <Ionicons name="time-outline" size={16} color={mutedFg} />
-      <Text className="text-sm text-foreground">运行 · {count}</Text>
+      <Text className="text-sm text-foreground">{runsLabel}</Text>
     </View>
   );
 }

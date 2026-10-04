@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { MulticaLogo } from "@/components/brand/multica-logo";
 import { useAuthStore } from "@/data/auth-store";
 import { mapAuthError } from "@/lib/auth-error";
+import { useT } from "@/lib/i18n/use-translation";
 
 const CODE_LENGTH = 6;
 const RESEND_COOLDOWN_SECONDS = 60;
@@ -16,6 +17,7 @@ const RESEND_COOLDOWN_SECONDS = 60;
 export default function Verify() {
   const sendCode = useAuthStore((s) => s.sendCode);
   const verifyCode = useAuthStore((s) => s.verifyCode);
+  const t = useT();
   const { email = "" } = useLocalSearchParams<{ email?: string }>();
   const [code, setCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -43,7 +45,7 @@ export default function Verify() {
       router.replace("/");
     } catch (err) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      setError(mapAuthError(err, "验证码校验失败，请重试。"));
+      setError(mapAuthError(err, t.auth.verifyCodeFailed));
       setSubmitting(false);
       otpRef.current?.clear();
       setCode("");
@@ -62,7 +64,7 @@ export default function Verify() {
       setCode("");
     } catch (err) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      setError(mapAuthError(err, "重新发送验证码失败，请重试。"));
+      setError(mapAuthError(err, t.auth.resendCodeFailed));
     } finally {
       setResending(false);
     }
@@ -79,10 +81,10 @@ export default function Verify() {
             <MulticaLogo size={32} />
             <View className="gap-1 items-center">
               <Text className="text-2xl font-semibold text-foreground">
-                输入验证码
+                {t.auth.enterCode}
               </Text>
               <Text className="text-sm text-muted-foreground text-center">
-                我们已发送 6 位验证码到 {email}
+                {t.auth.codeSentTo.replace("{email}", email)}
               </Text>
             </View>
           </View>
@@ -108,7 +110,7 @@ export default function Verify() {
               disabled={submitting || code.length < CODE_LENGTH}
               onPress={() => submit(code)}
             >
-              <Text>{submitting ? "验证中…" : "验证"}</Text>
+              <Text>{submitting ? t.common.verifying : t.auth.verify}</Text>
             </Button>
 
             <Pressable
@@ -124,10 +126,10 @@ export default function Verify() {
                 }
               >
                 {resending
-                  ? "发送中…"
+                  ? t.common.sending
                   : cooldown > 0
-                    ? `${cooldown} 秒后重发验证码`
-                    : "重发验证码"}
+                    ? t.common.resendCodeIn(cooldown)
+                    : t.auth.resendCode}
               </Text>
             </Pressable>
 
@@ -136,7 +138,7 @@ export default function Verify() {
               disabled={submitting}
               onPress={() => router.back()}
             >
-              <Text>使用其他邮箱</Text>
+              <Text>{t.auth.useDifferentEmail}</Text>
             </Button>
           </View>
         </View>

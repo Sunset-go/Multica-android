@@ -1,12 +1,12 @@
 /**
  * Activity-row text formatter. Subset of the web `formatActivity` in
- * packages/views/issues/components/issue-detail.tsx:95 — same actions,
- * Chinese-only copy (mobile is now Chinese-only).
+ * packages/views/issues/components/issue-detail.tsx — same actions,
+ * locale-aware via getT().
  *
  * Unknown actions fall through to the raw string in `entry.action`. NEVER
  * throw and NEVER drop the row — that's the API Response Compatibility rule
  * from repo-root CLAUDE.md (server may add new action enum values; older
- * mobile clients in the in the wild must render them as a generic fallback, not
+ * mobile clients in the wild must render them as a generic fallback, not
  * crash).
  */
 import type {
@@ -15,32 +15,19 @@ import type {
   TimelineEntry,
 } from "@multica/core/types";
 import { formatDateOnly } from "@multica/core/issues/date";
-
-const STATUS_LABEL: Record<IssueStatus, string> = {
-  backlog: "待办",
-  todo: "待开始",
-  in_progress: "进行中",
-  in_review: "审阅中",
-  done: "已完成",
-  blocked: "已阻塞",
-  cancelled: "已取消",
-};
-
-const PRIORITY_LABEL: Record<IssuePriority, string> = {
-  urgent: "紧急",
-  high: "高",
-  medium: "中",
-  low: "低",
-  none: "无优先级",
-};
+import { getT } from "@/lib/i18n/use-translation";
+import { useLanguageStore } from "@/data/language-store";
 
 function statusName(s: string | undefined): string {
-  if (s && s in STATUS_LABEL) return STATUS_LABEL[s as IssueStatus];
+  const t = getT();
+  if (s && s in t.activity.status) return t.activity.status[s as IssueStatus];
   return s ?? "?";
 }
 
 function priorityName(p: string | undefined): string {
-  if (p && p in PRIORITY_LABEL) return PRIORITY_LABEL[p as IssuePriority];
+  const t = getT();
+  if (p && p in t.activity.priority)
+    return t.activity.priority[p as IssuePriority];
   return p ?? "?";
 }
 
@@ -48,7 +35,8 @@ function priorityName(p: string | undefined): string {
 // day shift). Mirrors web's formatActivity in issue-detail.tsx.
 function shortDate(date: string | undefined): string {
   if (!date) return "?";
-  return formatDateOnly(date, { month: "short", day: "numeric" }, "zh-CN");
+  const locale = useLanguageStore.getState().locale;
+  return formatDateOnly(date, { month: "short", day: "numeric" }, locale === "zh" ? "zh-CN" : "en-US");
 }
 
 export function formatActivity(
@@ -58,64 +46,65 @@ export function formatActivity(
     id: string | null | undefined,
   ) => string,
 ): string {
+  const t = getT();
   const details = (entry.details ?? {}) as Record<string, string>;
   switch (entry.action) {
     case "created":
-      return "创建了任务";
+      return t.activity.createdIssue;
     case "status_changed":
-      return `修改了状态：${statusName(details.from)} → ${statusName(details.to)}`;
+      return t.activity.statusChanged(statusName(details.from), statusName(details.to));
     case "priority_changed":
-      return `修改了优先级：${priorityName(details.from)} → ${priorityName(details.to)}`;
+      return t.activity.priorityChanged(priorityName(details.from), priorityName(details.to));
     case "assignee_changed": {
       const isSelf =
         details.to_type === entry.actor_type &&
         details.to_id === entry.actor_id;
-      if (isSelf) return "自分配给自己";
-      if (details.from_id && !details.to_id) return "移除了负责人";
+      if (isSelf) return t.activity.selfAssigned;
+      if (details.from_id && !details.to_id) return t.activity.removedAssignee;
       const toName =
         details.to_id && details.to_type
           ? resolveActorName(details.to_type, details.to_id)
           : null;
-      if (toName) return `分配给了 ${toName}`;
-      return "修改了负责人";
+      if (toName) return t.activity.assignedTo(toName);
+      return t.activity.changedAssignee;
     }
     case "start_date_changed": {
-      if (!details.to) return "移除了开始日期";
-      return `设置开始日期为 ${shortDate(details.to)}`;
+      if (!details.to) return t.activity.removedStartDate;
+      return t.activity.setStartDate(shortDate(details.to));
     }
     case "due_date_changed": {
-      if (!details.to) return "移除了截止日期";
-      return `设置截止日期为 ${shortDate(details.to)}`;
+      if (!details.to) return t.activity.removedDueDate;
+      return t.activity.setDueDate(shortDate(details.to));
     }
     case "title_changed":
-      return `重命名：\"${details.from ?? "?"}\" → \"${details.to ?? "?"}\"`;
+      return t.activity.renamed(details.from ?? "?", details.to ?? "?");
     case "description_updated":
-      return "更新了描述";
+      return t.activity.updatedDescription;
     case "task_completed": {
       const n = entry.coalesced_count ?? 1;
-      return n > 1 ? `完成了 ${n} 个任务` : "完成了 1 个任务";
+      return t.activity.completedTasks(n);
     }
     case "task_failed": {
       const n = entry.coalesced_count ?? 1;
-      return n > 1 ? `${n} 个任务失败` : "1 个任务失败";
+      return t.activity.failedTasks(n);
     }
     case "squad_leader_evaluated": {
       const reason = details.reason?.trim();
       switch (details.outcome) {
         case "action":
           return reason
-            ? `已评估并执行操作：${reason}`
-            : "已评估并执行操作";
+            ? t.activity.evaluatedWithAction(reason)
+            : t.activity.evaluatedNoAction;
         case "no_action":
           return reason
-            ? `已评估：无需操作（${reason}）`
-            : "已评估：无需操作";
+            ? t.activity.evaluatedNoActionReason(reason)
+            : t.activity.evaluatedNoAction;
         case "failed":
           return reason
-            ? `评估失败：${reason}`
-            : "评估失败";
+            ? t.activity.evaluationFailed(reason)
+            : t.activity.evaluationFailedNoReason;
         default:
-          return "评估了小队触发器";
+          return t.activity.evaluatedSquadTrigger;
       }
     }
     default:

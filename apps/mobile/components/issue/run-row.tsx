@@ -17,6 +17,7 @@ import { ActorAvatar } from "@/components/ui/actor-avatar";
 import { useCancelTask } from "@/data/mutations/issues";
 import { useActorLookup } from "@/data/use-actor-name";
 import { timeAgo } from "@/lib/time-ago";
+import { useT, getT } from "@/lib/i18n/use-translation";
 
 interface Props {
   task: AgentTask;
@@ -62,12 +63,13 @@ export function RunRow({ task, issueId }: Props) {
 }
 
 function StatusBadge({ task }: { task: AgentTask }) {
-  const label = STATUS_LABEL[task.status] ?? task.status;
+  const t = useT();
+  const label = t.runRow.status[task.status] ?? task.status;
   const cls = STATUS_CLASS[task.status] ?? "text-muted-foreground";
   // For failed tasks, surface the failure_reason inline so users don't have
   // to drill in. Missing / empty / unrecognised stays as just "Failed".
   if (task.status === "failed" && task.failure_reason) {
-    const reasonLabel = FAILURE_REASON_LABEL[task.failure_reason];
+    const reasonLabel = (t.runRow.status as Record<string, string>)[task.failure_reason];
     if (reasonLabel) {
       return (
         <Text className={`text-xs ${cls}`}>
@@ -86,16 +88,17 @@ function CancelButton({
   taskId: string;
   issueId: string;
 }) {
+  const t = useT();
   const mutation = useCancelTask(issueId);
 
   const onPress = () => {
     Alert.alert(
-      "取消任务？",
-      "智能体会在当前步骤结束后停止。",
+      t.runRow.cancelTaskTitle,
+      t.runRow.cancelTaskMsg,
       [
-        { text: "继续运行", style: "cancel" },
+        { text: t.runRow.keepRunning, style: "cancel" },
         {
-          text: "取消任务",
+          text: t.runRow.cancelTask,
           style: "destructive",
           onPress: () => mutation.mutate(taskId),
         },
@@ -109,36 +112,27 @@ function CancelButton({
       disabled={mutation.isPending}
       className="px-3 py-1.5 rounded-md bg-secondary active:opacity-70"
     >
-      <Text className="text-xs font-medium text-foreground">取消</Text>
+      <Text className="text-xs font-medium text-foreground">{t.runRow.cancel}</Text>
     </Pressable>
   );
 }
 
 function fallbackSummary(task: AgentTask): string {
+  const t = getT();
   switch (task.kind) {
     case "comment":
-      return "评论任务";
+      return t.runRow.commentTask;
     case "autopilot":
-      return "自动运行";
+      return t.runRow.autopilotRun;
     case "chat":
-      return "对话任务";
+      return t.runRow.chatTask;
     case "quick_create":
-      return "快速创建";
+      return t.runRow.quickCreate;
     case "direct":
     default:
-      return "任务";
+      return t.runRow.task;
   }
 }
-
-const STATUS_LABEL: Record<AgentTask["status"], string> = {
-  queued: "排队中",
-  dispatched: "启动中",
-  waiting_local_directory: "等待目录",
-  running: "运行中",
-  completed: "已完成",
-  failed: "失败",
-  cancelled: "已取消",
-};
 
 const STATUS_CLASS: Record<AgentTask["status"], string> = {
   queued: "text-muted-foreground",
@@ -150,42 +144,4 @@ const STATUS_CLASS: Record<AgentTask["status"], string> = {
   cancelled: "text-muted-foreground",
 };
 
-// Short badge copy — deliberately terser than lib/failure-reason-label.ts,
-// which backs a full-width chat bubble; this one shares a single line with the
-// status word and a timestamp.
-//
-// Keyed by the raw wire value, not a closed enum: `failure_reason` is an open
-// string that grows as classifier rules land. It held only the six
-// pre-MUL-1949 coarse values until MUL-5370, so every refined `agent_error.*`
-// the backend has written since fell through and the badge read just "Failed".
-// An unrecognised reason still does — a compact badge is the one place where
-// web's raw-wire-value fallback would overflow the row.
-const FAILURE_REASON_LABEL: Record<string, string> = {
-  queued_expired: "队列超时",
-  runtime_offline: "运行离线",
-  runtime_recovery: "运行恢复",
-  timeout: "超时",
-  iteration_limit: "迭代上限",
-  agent_blocked: "需要输入",
-  api_invalid_request: "请求被拒",
-  skill_bundle_unavailable: "技能下载失败",
 
-  "agent_error.provider_auth_or_access": "认证失败",
-  "agent_error.provider_quota_limit": "配额用尽",
-  "agent_error.provider_capacity_or_rate_limit": "被供应商限流",
-  "agent_error.provider_server_error": "供应商错误",
-  "agent_error.provider_network": "网络错误",
-  "agent_error.process_failure": "进程崩溃",
-  "agent_error.empty_or_unparseable_output": "无可用输出",
-  "agent_error.agent_timeout": "智能体超时",
-  "agent_error.context_overflow": "上下文溢出",
-  "agent_error.missing_config": "缺少配置",
-  "agent_error.model_not_found_or_unavailable": "模型不可用",
-  "agent_error.runtime_version_unsupported": "CLI 不支持",
-  "agent_error.runtime_missing_executable": "未安装 CLI",
-  "agent_error.unknown": "智能体错误",
-
-  agent_error: "智能体错误",
-  codex_semantic_inactivity: "Codex 静默",
-  manual: "手动",
-};

@@ -59,6 +59,7 @@ import { stripMarkdown } from "@/lib/strip-markdown";
 import { THEME } from "@/lib/theme";
 import { Text } from "@/components/ui/text";
 import { IconButton } from "@/components/ui/icon-button";
+import { useT } from "@/lib/i18n/use-translation";
 import {
   ComposerAttachmentRow,
   type ComposerAttachmentItem,
@@ -158,8 +159,8 @@ export function MessageComposer({
   onSubmit,
   mentionPickerPath,
   uploadContext,
-  placeholder = "输入消息…",
-  pillLabel = "输入消息…",
+  placeholder,
+  pillLabel,
   pillIcon = "chatbubble-ellipses-outline",
   value: controlledValue,
   onChangeText: controlledOnChange,
@@ -173,6 +174,9 @@ export function MessageComposer({
   manageKeyboard = true,
 }: Props) {
   const { colorScheme } = useColorScheme();
+  const t = useT();
+  const resolvedPlaceholder = placeholder ?? t.composer.messagePlaceholder;
+  const resolvedPillLabel = pillLabel ?? t.composer.messagePlaceholder;
   const theme = THEME[colorScheme];
   const insets = useSafeAreaInsets();
   const inputRef = useRef<TextInput>(null);
@@ -325,7 +329,7 @@ export function MessageComposer({
           ),
         );
       } catch (err) {
-        const message = err instanceof Error ? err.message : "未知错误";
+        const message = err instanceof Error ? err.message : t.common.unknownError;
         setAttachments((prev) =>
           prev.map((it) =>
             it.localId === localId
@@ -335,7 +339,7 @@ export function MessageComposer({
         );
       }
     },
-    [uploadContext],
+    [t, uploadContext],
   );
 
   const onImagePress = useCallback(async () => {
@@ -347,7 +351,7 @@ export function MessageComposer({
     const picked = picker.assets[0];
     if (!picked) return;
     if (picked.fileSize != null && picked.fileSize > MAX_FILE_SIZE) {
-      Alert.alert("文件过大", "文件必须小于 100 MB。");
+      Alert.alert(t.composer.fileTooLarge, t.composer.fileTooLargeDesc);
       return;
     }
     const filename = picked.fileName ?? `image-${Date.now()}.jpg`;
@@ -369,7 +373,7 @@ export function MessageComposer({
       name: filename,
       type: mimeType,
     });
-  }, [startUpload]);
+  }, [t, startUpload]);
 
   const onFilePress = useCallback(async () => {
     const picker = await DocumentPicker.getDocumentAsync({
@@ -380,7 +384,7 @@ export function MessageComposer({
     const picked = picker.assets[0];
     if (!picked) return;
     if (picked.size != null && picked.size > MAX_FILE_SIZE) {
-      Alert.alert("文件过大", "文件必须小于 100 MB。");
+      Alert.alert(t.composer.fileTooLarge, t.composer.fileTooLargeDesc);
       return;
     }
     const mimeType = picked.mimeType ?? "application/octet-stream";
@@ -401,7 +405,7 @@ export function MessageComposer({
       name: picked.name,
       type: mimeType,
     });
-  }, [startUpload]);
+  }, [t, startUpload]);
 
   const onRemoveAttachment = useCallback((localId: string) => {
     setAttachments((prev) => prev.filter((it) => it.localId !== localId));
@@ -458,7 +462,7 @@ export function MessageComposer({
         onPress={expand}
         disabled={disabled}
         accessibilityRole="button"
-        accessibilityLabel={pillLabel}
+        accessibilityLabel={resolvedPillLabel}
         accessibilityState={{ disabled }}
         className="flex-row items-center gap-2 h-11 px-4 rounded-full bg-secondary active:opacity-80"
       >
@@ -468,7 +472,7 @@ export function MessageComposer({
           color={theme.mutedForeground}
         />
         <Text className="text-base text-muted-foreground">
-          {disabled && disabledReason ? disabledReason : pillLabel}
+          {disabled && disabledReason ? disabledReason : resolvedPillLabel}
         </Text>
       </Pressable>
     </View>
@@ -491,13 +495,13 @@ export function MessageComposer({
               className="flex-1 text-xs font-medium text-muted-foreground"
               numberOfLines={1}
             >
-              Replying to {replyTarget.actorName}
+              {t.composer.replyingTo(replyTarget.actorName)}
             </Text>
             <Pressable
               onPress={onClearReplyTarget}
               hitSlop={8}
               accessibilityRole="button"
-              accessibilityLabel="取消回复"
+              accessibilityLabel={t.composer.cancelReply}
             >
               <Ionicons
                 name="close-circle"
@@ -538,7 +542,7 @@ export function MessageComposer({
           value={text}
           onChangeText={setText}
           onBlur={onBlur}
-          placeholder={placeholder}
+          placeholder={resolvedPlaceholder}
           placeholderTextColor={theme.mutedForeground}
           multiline
           editable={!disabled}
@@ -555,21 +559,21 @@ export function MessageComposer({
             iconSize={20}
             color={mentions.length > 0 ? theme.primary : undefined}
             onPress={onAtPress}
-            accessibilityLabel="提及人员或任务"
+            accessibilityLabel={t.composer.mentionSomeoneOrIssue}
             className="h-8 w-8"
           />
           <IconButton
             name="image-outline"
             iconSize={20}
             onPress={onImagePress}
-            accessibilityLabel="上传图片"
+            accessibilityLabel={t.composer.uploadImage}
             className="h-8 w-8"
           />
           <IconButton
             name="attach-outline"
             iconSize={20}
             onPress={onFilePress}
-            accessibilityLabel="上传文件"
+            accessibilityLabel={t.composer.uploadFile}
             className="h-8 w-8"
           />
           <View className="flex-1" />
@@ -585,7 +589,7 @@ export function MessageComposer({
               disabled={!canSend}
               hitSlop={12}
               className="h-8 w-8 rounded-full"
-              accessibilityLabel="发送"
+              accessibilityLabel={t.composer.send}
               accessibilityState={{ disabled: !canSend }}
             />
           )}

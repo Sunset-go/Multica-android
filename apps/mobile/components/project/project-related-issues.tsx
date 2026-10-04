@@ -33,12 +33,14 @@ import { IssuesLoading } from "@/components/issue/issues-loading";
 import { projectIssuesOptions } from "@/data/queries/projects";
 import { useWorkspaceStore } from "@/data/workspace-store";
 import { BOARD_STATUSES, STATUS_LABEL } from "@/lib/issue-status";
+import { useT } from "@/lib/i18n/use-translation";
 
 interface Props {
   projectId: string;
 }
 
 export function ProjectRelatedIssues({ projectId }: Props) {
+  const t = useT();
   const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const wsSlug = useWorkspaceStore((s) => s.currentWorkspaceSlug);
   const { data, isLoading, error, refetch } = useQuery(
@@ -65,11 +67,10 @@ export function ProjectRelatedIssues({ projectId }: Props) {
     return (
       <View className="px-4 py-6 gap-3">
         <Text className="text-sm text-destructive">
-          任务加载失败：{" "}
-          {error instanceof Error ? error.message : "未知错误"}
+          {`${t.projects.relatedIssuesLoadFailed}：${error instanceof Error ? error.message : t.common.unknownError}`}
         </Text>
         <Button variant="outline" onPress={() => refetch()}>
-          <Text>重试</Text>
+          <Text>{t.common.retry}</Text>
         </Button>
       </View>
     );
@@ -78,7 +79,7 @@ export function ProjectRelatedIssues({ projectId }: Props) {
   if ((data?.length ?? 0) === 0) {
     return (
       <View className="px-4 py-6">
-        <Text className="text-sm text-muted-foreground">还没有任务。</Text>
+        <Text className="text-sm text-muted-foreground">{t.projects.noIssues}</Text>
       </View>
     );
   }

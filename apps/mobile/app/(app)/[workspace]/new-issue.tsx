@@ -31,8 +31,10 @@ import { MOBILE_PLACEHOLDER_COLOR } from "@/components/ui/input-tokens";
 import { useCreateIssue } from "@/data/mutations/issues";
 import { useNewIssueDraftStore } from "@/data/stores/new-issue-draft-store";
 import { useMentionInput } from "@/lib/use-mention-input";
+import { useT } from "@/lib/i18n/use-translation";
 
 export default function NewIssueModal() {
+  const t = useT();
   const [title, setTitle] = useState("");
   const description = useMentionInput();
   // Attribute chips (status / priority / assignee / due date / project)
@@ -78,8 +80,8 @@ export default function NewIssueModal() {
       router.back();
     } catch (err) {
       Alert.alert(
-        "任务创建失败",
-        err instanceof Error ? err.message : "未知错误",
+        t.issues.createFailed,
+        err instanceof Error ? err.message : t.common.unknownError,
       );
     }
   }, [
@@ -91,6 +93,7 @@ export default function NewIssueModal() {
     dueDate,
     project,
     createIssue,
+    t,
   ]);
 
   const headerRight = useCallback(
@@ -119,7 +122,7 @@ export default function NewIssueModal() {
           <TextInput
             value={title}
             onChangeText={setTitle}
-            placeholder="任务标题"
+            placeholder={t.issues.titlePlaceholder}
             placeholderTextColor={MOBILE_PLACEHOLDER_COLOR}
             className="text-2xl font-semibold text-foreground py-2"
             autoFocus

@@ -8,11 +8,13 @@ import { router } from "expo-router";
 import { AssigneePickerBody } from "@/components/issue/pickers/assignee-picker-body";
 import { useNewIssueDraftStore } from "@/data/stores/new-issue-draft-store";
 import { useNativeSearchBar } from "@/lib/use-native-search-bar";
+import { useT } from "@/lib/i18n/use-translation";
 
 export default function NewIssueAssigneePickerRoute() {
+  const t = useT();
   const assignee = useNewIssueDraftStore((s) => s.assignee);
   const setAssignee = useNewIssueDraftStore((s) => s.setAssignee);
-  const query = useNativeSearchBar("搜索人员", { autoFocus: true });
+  const query = useNativeSearchBar(t.issues.searchPeople, { autoFocus: true });
 
   return (
     <AssigneePickerBody

@@ -139,4 +139,12 @@
     --surface-1: 0 0% 8%;
     --surface-2: 0 0% 19%;
   }
+
+  /*
+   * Color palettes are now applied at runtime via NativeWind's `vars()`
+   * API in app/_layout.tsx, not via CSS classes here. NativeWind v4
+   * resolves CSS variable overrides in @layer base at build time, so
+   * className-based `.palette-*` rules don't cascade to children at
+   * runtime. The palette definitions live in lib/theme-palettes.ts.
+   */
 }

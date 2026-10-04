@@ -13,10 +13,12 @@ import { useLocalSearchParams, router } from "expo-router";
 import { Text } from "@/components/ui/text";
 import { TextField } from "@/components/ui/text-field";
 import { useCreateProjectResource } from "@/data/mutations/projects";
+import { useT } from "@/lib/i18n/use-translation";
 
 const GITHUB_PATTERN = /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+(\/|$)/i;
 
 export default function AddResourceRoute() {
+  const t = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const createResource = useCreateProjectResource(id);
 
@@ -38,19 +40,19 @@ export default function AddResourceRoute() {
         onSuccess: () => router.back(),
         onError: (err) => {
           Alert.alert(
-            "资源添加失败",
-            err instanceof Error ? err.message : "未知错误",
+            t.projects.attachFailed,
+            err instanceof Error ? err.message : t.common.unknownError,
           );
         },
       },
     );
-  }, [valid, submitting, createResource, url, label]);
+  }, [valid, submitting, createResource, url, label, t]);
 
   return (
     <View className="flex-1">
       <View className="flex-row items-center justify-between px-4 pt-4 pb-2">
         <Text className="text-base font-semibold text-foreground">
-          添加仓库
+          {t.projects.attachResource}
         </Text>
         <Pressable
           onPress={onSubmit}
@@ -61,13 +63,13 @@ export default function AddResourceRoute() {
           }`}
         >
           <Text className="text-sm font-semibold text-primary">
-            {submitting ? "添加中…" : "添加"}
+            {submitting ? t.projects.attaching : t.projects.attach}
           </Text>
         </Pressable>
       </View>
       <View className="px-4 pt-4 gap-4">
         <View className="gap-1">
-          <Text className="text-xs text-muted-foreground">仓库地址</Text>
+          <Text className="text-xs text-muted-foreground">{t.projects.resourceUrl}</Text>
           <TextField
             value={url}
             onChangeText={setUrl}
@@ -80,12 +82,12 @@ export default function AddResourceRoute() {
         </View>
         <View className="gap-1">
           <Text className="text-xs text-muted-foreground">
-            标签（可选）
+            {t.projects.labelOptional}
           </Text>
           <TextField
             value={label}
             onChangeText={setLabel}
-            placeholder="例如：后端"
+            placeholder={t.projects.labelPlaceholder}
           />
         </View>
       </View>

@@ -9,9 +9,11 @@ import { Button } from "@/components/ui/button";
 import { MulticaLogo } from "@/components/brand/multica-logo";
 import { useAuthStore } from "@/data/auth-store";
 import { mapAuthError } from "@/lib/auth-error";
+import { useT } from "@/lib/i18n/use-translation";
 
 export default function Login() {
   const sendCode = useAuthStore((s) => s.sendCode);
+  const t = useT();
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +29,7 @@ export default function Login() {
       router.push({ pathname: "/verify", params: { email: trimmed } });
     } catch (err) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      setError(mapAuthError(err, "发送验证码失败，请重试。"));
+      setError(mapAuthError(err, t.auth.sendCodeFailed));
     } finally {
       setSubmitting(false);
     }
@@ -44,10 +46,10 @@ export default function Login() {
             <MulticaLogo size={32} />
             <View className="gap-1 items-center">
               <Text className="text-2xl font-semibold text-foreground">
-                登录 Multica
+                {t.auth.signInTitle}
               </Text>
               <Text className="text-sm text-muted-foreground text-center">
-                输入您的邮箱，我们会向您发送验证码。
+                {t.auth.signInSubtitle}
               </Text>
             </View>
           </View>
@@ -76,7 +78,7 @@ export default function Login() {
             disabled={submitting || !email.trim()}
             onPress={onSubmit}
           >
-            <Text>{submitting ? "发送中…" : "发送验证码"}</Text>
+            <Text>{submitting ? t.common.sending : t.auth.sendCode}</Text>
           </Button>
         </View>
       </KeyboardAvoidingView>

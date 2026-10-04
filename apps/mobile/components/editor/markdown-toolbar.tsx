@@ -19,6 +19,7 @@ import { Pressable, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/use-translation";
 
 export interface MarkdownToolbarProps {
   /** Toolbar `@` button → hook.handlers.onAtButtonPress. */
@@ -51,38 +52,39 @@ export function MarkdownToolbar({
   onFile,
   disabled,
 }: MarkdownToolbarProps) {
+  const t = useT();
   return (
     <View className="flex-row items-center gap-1 px-2 py-1.5 border-t border-border bg-background">
       <ToolbarButton
-        accessibilityLabel="提及人员"
+        accessibilityLabel={t.markdown.mention}
         onPress={onAt}
         disabled={disabled}
       >
         <Text className="text-base text-muted-foreground leading-none">@</Text>
       </ToolbarButton>
       <ToolbarButton
-        accessibilityLabel="项目列表"
+        accessibilityLabel={t.markdown.bulletList}
         onPress={onList}
         disabled={disabled}
       >
         <Ionicons name="list-outline" size={18} color={ICON_COLOR} />
       </ToolbarButton>
       <ToolbarButton
-        accessibilityLabel="勾选列表"
+        accessibilityLabel={t.markdown.checklist}
         onPress={onCheckbox}
         disabled={disabled}
       >
         <Ionicons name="checkbox-outline" size={18} color={ICON_COLOR} />
       </ToolbarButton>
       <ToolbarButton
-        accessibilityLabel="代码块"
+        accessibilityLabel={t.markdown.codeBlock}
         onPress={onCode}
         disabled={disabled}
       >
         <Ionicons name="code-slash-outline" size={18} color={ICON_COLOR} />
       </ToolbarButton>
       <ToolbarButton
-        accessibilityLabel="引用"
+        accessibilityLabel={t.markdown.quote}
         onPress={onQuote}
         disabled={disabled}
       >
@@ -94,7 +96,7 @@ export function MarkdownToolbar({
       </ToolbarButton>
       {onImage ? (
         <ToolbarButton
-          accessibilityLabel="附加图片"
+          accessibilityLabel={t.markdown.attachImage}
           onPress={onImage}
           disabled={disabled}
         >
@@ -103,7 +105,7 @@ export function MarkdownToolbar({
       ) : null}
       {onFile ? (
         <ToolbarButton
-          accessibilityLabel="附加文件"
+          accessibilityLabel={t.markdown.attachFile}
           onPress={onFile}
           disabled={disabled}
         >

@@ -50,6 +50,7 @@ import {
 import { filterIssues } from "@/lib/filter-issues";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { THEME } from "@/lib/theme";
+import { useT, getT } from "@/lib/i18n/use-translation";
 
 type IssueSection = { status: IssueStatus; data: Issue[] };
 
@@ -58,13 +59,10 @@ type IssueSection = { status: IssueStatus; data: Issue[] };
 // either, and on SE3 (375pt) "(123)" appended to each label pushes the
 // row past the safe width when filter icon shares the row. Per-status
 // counts still appear on the SectionList headers below.
-const SCOPES: { value: IssuesScope; label: string }[] = [
-  { value: "all", label: "全部" },
-  { value: "members", label: "成员" },
-  { value: "agents", label: "智能体" },
-];
+const SCOPES: IssuesScope[] = ["all", "members", "agents"];
 
 export default function IssuesPage() {
+  const t = useT();
   const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const wsSlug = useWorkspaceStore((s) => s.currentWorkspaceSlug);
 
@@ -138,7 +136,15 @@ export default function IssuesPage() {
   return (
     <View className="flex-1 bg-background">
       <ScopeToolbar
-        scopes={SCOPES}
+        scopes={SCOPES.map((v) => ({
+          value: v,
+          label:
+            v === "all"
+              ? t.projects.all
+              : v === "members"
+                ? t.projects.member
+                : t.projects.agent,
+        }))}
         scope={scope}
         onChange={(v) => setScope(v)}
         onOpenFilter={openFilter}
@@ -161,18 +167,18 @@ export default function IssuesPage() {
       ) : error ? (
         <View className="px-4 gap-3 pt-4">
           <Text className="text-sm text-destructive">
-            任务加载失败：{" "}
-            {error instanceof Error ? error.message : "未知错误"}
+            {t.issues.loadFailed}：{" "}
+            {error instanceof Error ? error.message : t.common.unknownError}
           </Text>
           <Button variant="outline" onPress={() => refetch()}>
-            <Text>重试</Text>
+            <Text>{t.common.retry}</Text>
           </Button>
         </View>
       ) : showEmptyState ? (
         <EmptyState
           message={
             hasActiveFilters
-              ? "没有符合当前筛选的任务。"
+              ? t.issues.noMatch
               : emptyMessageForScope(scope)
           }
         />
@@ -216,6 +222,7 @@ function FilterButton({
   onPress: () => void;
   hasActiveFilters: boolean;
 }) {
+  const t = useT();
   const { colorScheme } = useColorScheme();
   return (
     <View style={{ position: "relative" }} className="ml-2">
@@ -223,7 +230,7 @@ function FilterButton({
         variant="outline"
         size="sm"
         onPress={onPress}
-        accessibilityLabel="筛选"
+        accessibilityLabel={t.issues.filter}
         className="w-9 px-0"
       >
         <Ionicons
@@ -372,12 +379,13 @@ function EmptyState({ message }: { message: string }) {
 }
 
 function emptyMessageForScope(scope: IssuesScope): string {
+  const t = getT();
   switch (scope) {
     case "all":
-      return "此工作区没有任务。";
+      return t.issues.noIssuesInWorkspace;
     case "members":
-      return "没有分配给成员的任务。";
+      return t.issues.noMemberIssues;
     case "agents":
-      return "没有分配给智能体或小队的任务。";
+      return t.issues.noSquadIssues;
   }
 }

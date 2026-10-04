@@ -11,6 +11,7 @@
  * (apps/mobile/CLAUDE.md) intact.
  */
 import type { IssuePriority, IssueStatus } from "@multica/core/types";
+import { getT } from "@/lib/i18n/use-translation";
 
 /** Statuses surfaced in list/board views (matches web — `cancelled` excluded). */
 export const BOARD_STATUSES: IssueStatus[] = [
@@ -22,20 +23,22 @@ export const BOARD_STATUSES: IssueStatus[] = [
   "blocked",
 ];
 
-export const STATUS_LABEL: Record<IssueStatus, string> = {
-  backlog: "待办",
-  todo: "待开始",
-  in_progress: "进行中",
-  in_review: "审阅中",
-  done: "已完成",
-  blocked: "已阻塞",
-  cancelled: "已取消",
-};
+export function getStatusLabel(status: IssueStatus): string {
+  return getT().issueStatus[status];
+}
 
-export const PRIORITY_LABEL: Record<IssuePriority, string> = {
-  none: "无优先级",
-  low: "低",
-  medium: "中",
-  high: "高",
-  urgent: "紧急",
-};
+export function getPriorityLabel(priority: IssuePriority): string {
+  return getT().issuePriority[priority];
+}
+
+/** @deprecated Use getStatusLabel() — locale-aware. Kept for call-site compat. */
+export const STATUS_LABEL: Record<IssueStatus, string> = new Proxy(
+  {} as Record<IssueStatus, string>,
+  { get: (_, key: string) => getT().issueStatus[key as IssueStatus] ?? key },
+);
+
+/** @deprecated Use getPriorityLabel() — locale-aware. Kept for call-site compat. */
+export const PRIORITY_LABEL: Record<IssuePriority, string> = new Proxy(
+  {} as Record<IssuePriority, string>,
+  { get: (_, key: string) => getT().issuePriority[key as IssuePriority] ?? key },
+);

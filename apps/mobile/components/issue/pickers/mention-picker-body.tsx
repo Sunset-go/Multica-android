@@ -47,6 +47,7 @@ import { useScrollToTopOnChange } from "@/lib/use-scroll-to-top-on-change";
 import { THEME } from "@/lib/theme";
 import { isAgentRuntimeBound } from "@/lib/is-agent-runtime-bound";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/use-translation";
 
 const AVATAR_SIZE = 36;
 
@@ -69,6 +70,7 @@ interface Props {
 }
 
 export function MentionPickerBody({ query, mode = "comment" }: Props) {
+  const t = useT();
   const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const { data: members = [] } = useQuery(memberListOptions(wsId));
   const { data: agents = [] } = useQuery(agentListOptions(wsId));
@@ -148,32 +150,32 @@ export function MentionPickerBody({ query, mode = "comment" }: Props) {
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((m): Row => ({ kind: "member", member: m }));
       if (memberRows.length > 0) {
-        out.push({ kind: "section", label: "成员" }, ...memberRows);
+        out.push({ kind: "section", label: t.projects.member }, ...memberRows);
       }
       const agentRows = [...agents]
         .filter((a) => matchName(a.name))
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((a): Row => ({ kind: "agent", agent: a }));
       if (agentRows.length > 0) {
-        out.push({ kind: "section", label: "智能体" }, ...agentRows);
+        out.push({ kind: "section", label: t.projects.agent }, ...agentRows);
       }
       const squadRows = [...squads]
         .filter((s) => !s.archived_at && matchName(s.name))
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((s): Row => ({ kind: "squad", squad: s }));
       if (squadRows.length > 0) {
-        out.push({ kind: "section", label: "小队" }, ...squadRows);
+        out.push({ kind: "section", label: t.projects.squad }, ...squadRows);
       }
     }
 
     if (issueResults.length > 0) {
-      out.push({ kind: "section", label: "任务" });
+      out.push({ kind: "section", label: t.screens.issues });
       for (const i of issueResults) {
         out.push({ kind: "issue", issue: i });
       }
     }
     return out;
-  }, [mode, members, agents, squads, issueResults, query]);
+  }, [mode, members, agents, squads, issueResults, query, t]);
 
   const pick = (row: Row) => {
     let chip: MentionChipDraft | null = null;
@@ -279,7 +281,7 @@ export function MentionPickerBody({ query, mode = "comment" }: Props) {
             ) : (
               <Text className="flex-1 text-base text-foreground">
                 {item.kind === "all"
-                  ? "所有人 (@all)"
+                  ? `${t.projects.everyone} (@all)`
                   : item.kind === "member"
                     ? item.member.name
                     : item.kind === "agent"
@@ -289,11 +291,11 @@ export function MentionPickerBody({ query, mode = "comment" }: Props) {
             )}
             {item.kind === "agent" ? (
               <Text className="text-sm text-muted-foreground">
-                {isAgentRuntimeBound(item.agent) ? "智能体" : "需运行时"}
+                {isAgentRuntimeBound(item.agent) ? t.projects.agent : t.projects.needsRuntime}
               </Text>
             ) : item.kind === "squad" ? (
               <Text className="text-sm text-muted-foreground">
-                {needsRuntime ? "负责人需运行时" : "小队"}
+                {needsRuntime ? t.projects.leaderNeedsRuntime : t.projects.squad}
               </Text>
             ) : null}
             {isSelected(item) ? (
@@ -304,7 +306,7 @@ export function MentionPickerBody({ query, mode = "comment" }: Props) {
       }}
       ListEmptyComponent={
         <View className="px-3 py-8 items-center">
-          <Text className="text-sm text-muted-foreground">无匹配结果。</Text>
+          <Text className="text-sm text-muted-foreground">{t.projects.noMatches}</Text>
         </View>
       }
     />

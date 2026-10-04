@@ -33,6 +33,7 @@ import { useLightbox } from "@/lib/markdown/lightbox-provider";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { THEME } from "@/lib/theme";
 import { Text } from "@/components/ui/text";
+import { useT } from "@/lib/i18n/use-translation";
 
 /** Mention chip data — composer-local state. No store, no cross-route
  *  sharing. The composer owns the array and passes it in. */
@@ -133,6 +134,7 @@ function MentionChipView({
 }) {
   const { colorScheme } = useColorScheme();
   const theme = THEME[colorScheme];
+  const t = useT();
 
   // Icon picks: @all → people; issue → git-branch (matches web's status icon
   // styling for issue mentions); else single-person glyph.
@@ -155,7 +157,7 @@ function MentionChipView({
         onPress={() => onRemove(mention.type, mention.id)}
         hitSlop={8}
         accessibilityRole="button"
-        accessibilityLabel={`移除提及 ${mention.name}`}
+        accessibilityLabel={t.issues.removeMention(mention.name)}
         className="h-4 w-4 items-center justify-center"
       >
         <Ionicons name="close" size={12} color={theme.mutedForeground} />
@@ -178,6 +180,7 @@ function AttachmentChipView({ item, onRemove, onRetry }: AttachmentChipProps) {
   const { colorScheme } = useColorScheme();
   const theme = THEME[colorScheme];
   const { open } = useLightbox();
+  const t = useT();
 
   const isImage = useMemo(
     () => item.mimeType.startsWith("image/"),
@@ -248,7 +251,7 @@ function AttachmentChipView({ item, onRemove, onRetry }: AttachmentChipProps) {
         onPress={() => onRemove(item.localId)}
         hitSlop={8}
         accessibilityRole="button"
-        accessibilityLabel={`移除 ${item.filename}`}
+        accessibilityLabel={t.issues.removeFile(item.filename)}
         className="h-4 w-4 items-center justify-center"
       >
         <Ionicons name="close" size={12} color={theme.mutedForeground} />

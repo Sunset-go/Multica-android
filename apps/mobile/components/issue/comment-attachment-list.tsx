@@ -31,6 +31,7 @@ import { resolveAttachmentUrl } from "@/lib/attachment-url";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { THEME } from "@/lib/theme";
 import { Text } from "@/components/ui/text";
+import { useT } from "@/lib/i18n/use-translation";
 
 interface Props {
   attachments?: Attachment[];
@@ -45,6 +46,7 @@ interface Props {
 export function CommentAttachmentList({ attachments, content }: Props) {
   const { colorScheme } = useColorScheme();
   const theme = THEME[colorScheme];
+  const t = useT();
 
   // Only render attachments not already referenced inline in the body. The
   // dedup lives in a pure helper (lib/attachment-dedup) so it can be unit
@@ -90,6 +92,7 @@ function FileCard({
   attachment: Attachment;
   theme: typeof THEME["light"];
 }) {
+  const t = useT();
   const sizeLabel = formatBytes(attachment.size_bytes);
   return (
     <Pressable
@@ -110,7 +113,7 @@ function FileCard({
         }
       }}
       accessibilityRole="button"
-      accessibilityLabel={`打开 ${attachment.filename}`}
+      accessibilityLabel={t.issues.openFile(attachment.filename)}
       className="flex-row items-center gap-2 px-3 py-2 rounded-md bg-secondary/60 active:opacity-80"
     >
       <Ionicons

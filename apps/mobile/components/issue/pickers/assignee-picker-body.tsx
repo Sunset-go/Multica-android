@@ -33,6 +33,7 @@ import { useScrollToTopOnChange } from "@/lib/use-scroll-to-top-on-change";
 import { THEME } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { isAgentRuntimeBound } from "@/lib/is-agent-runtime-bound";
+import { useT } from "@/lib/i18n/use-translation";
 
 const AVATAR_SIZE = 36;
 
@@ -64,6 +65,7 @@ function isRowSelected(value: AssigneeValue, row: Row): boolean {
 }
 
 export function AssigneePickerBody({ value, query, onChange }: Props) {
+  const t = useT();
   const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const { data: members = [] } = useQuery(memberListOptions(wsId));
   const { data: agents = [] } = useQuery(agentListOptions(wsId));
@@ -184,7 +186,7 @@ export function AssigneePickerBody({ value, query, onChange }: Props) {
           )}
           <Text className="flex-1 text-base text-foreground">
             {item.kind === "unassigned"
-              ? "未分配"
+              ? t.projects.unassigned
               : item.kind === "member"
                 ? item.member.name
                 : item.kind === "agent"
@@ -197,11 +199,11 @@ export function AssigneePickerBody({ value, query, onChange }: Props) {
               the same row. Members carry no tag (they're the default actor). */}
           {item.kind === "agent" ? (
             <Text className="text-sm text-muted-foreground">
-              {isAgentRuntimeBound(item.agent) ? "智能体" : "需运行时"}
+              {isAgentRuntimeBound(item.agent) ? t.projects.agent : t.projects.needsRuntime}
             </Text>
           ) : item.kind === "squad" ? (
             <Text className="text-sm text-muted-foreground">
-              {needsRuntime ? "负责人需运行时" : "小队"}
+              {needsRuntime ? t.projects.leaderNeedsRuntime : t.projects.squad}
             </Text>
           ) : null}
           {isSelected(item) ? (
@@ -212,7 +214,7 @@ export function AssigneePickerBody({ value, query, onChange }: Props) {
       }}
       ListEmptyComponent={
         <View className="px-3 py-8 items-center">
-          <Text className="text-sm text-muted-foreground">无匹配结果。</Text>
+          <Text className="text-sm text-muted-foreground">{t.projects.noMatches}</Text>
         </View>
       }
     />

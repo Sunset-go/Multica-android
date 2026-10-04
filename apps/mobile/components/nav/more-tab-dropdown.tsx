@@ -57,10 +57,12 @@ import { useWorkspaceStore } from "@/data/workspace-store";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { tabBarBottomPadding, tabBarContentHeight } from "@/lib/tab-bar";
 import { THEME } from "@/lib/theme";
+import { useT } from "@/lib/i18n/use-translation";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
-  label: string;
+  /** Translation key path into t.more, e.g. "pinned". */
+  labelKey: keyof ReturnType<typeof useT>["more"];
   /** SF Symbol name, rendered via expo-image `source: "sf:<name>"`. */
   icon: string;
   /** Path under /:slug/ — final href is `/${slug}${path}`. */
@@ -68,9 +70,9 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "已固定", icon: "pin", path: "/more/pins" },
-  { label: "任务", icon: "list.bullet", path: "/more/issues" },
-  { label: "项目", icon: "square.stack", path: "/more/projects" },
+  { labelKey: "pinned", icon: "pin", path: "/more/pins" },
+  { labelKey: "issues", icon: "list.bullet", path: "/more/issues" },
+  { labelKey: "projects", icon: "square.stack", path: "/more/projects" },
 ];
 
 export function MoreTabDropdownAnchor({
@@ -83,7 +85,9 @@ export function MoreTabDropdownAnchor({
   const user = useAuthStore((s) => s.user);
   const pathname = usePathname();
   const { colorScheme } = useColorScheme();
-  const t = THEME[colorScheme];
+  const t = useT();
+  const tMore = t.more;
+  const tTheme = THEME[colorScheme];
   const currentWorkspace = useCurrentWorkspace(slug);
 
   const isActive = (path: string) => {
@@ -126,7 +130,8 @@ export function MoreTabDropdownAnchor({
           <UserCard
             user={user}
             onPress={() => slug && router.push(`/${slug}/more/settings`)}
-            chevronTint={t.mutedForeground}
+            chevronTint={tTheme.mutedForeground}
+            label={tMore.accountSettings}
           />
 
           <DropdownMenuSeparator />
@@ -137,7 +142,9 @@ export function MoreTabDropdownAnchor({
             onPress={() =>
               slug && router.push(`/${slug}/switch-workspace`)
             }
-            chevronTint={t.mutedForeground}
+            chevronTint={tTheme.mutedForeground}
+            workspaceLabel={tMore.workspace}
+            switchLabel={tMore.switchWorkspace}
           />
 
           <DropdownMenuSeparator />
@@ -146,7 +153,7 @@ export function MoreTabDropdownAnchor({
             <DropdownMenuItem
               key={item.path}
               onPress={() => slug && router.push(`/${slug}${item.path}`)}
-              accessibilityLabel={item.label}
+              accessibilityLabel={tMore[item.labelKey]}
               className={cn(
                 "h-9 gap-3",
                 isActive(item.path) && "bg-secondary",
@@ -154,10 +161,10 @@ export function MoreTabDropdownAnchor({
             >
               <ExpoImage
                 source={`sf:${item.icon}`}
-                tintColor={t.foreground}
+                tintColor={tTheme.foreground}
                 style={{ width: 18, height: 18 }}
               />
-              <Text className="text-sm text-foreground">{item.label}</Text>
+              <Text className="text-sm text-foreground">{tMore[item.labelKey]}</Text>
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>
@@ -176,17 +183,19 @@ function UserCard({
   user,
   onPress,
   chevronTint,
+  label,
 }: {
   user: User | null;
   onPress: () => void;
   chevronTint: string;
+  label: string;
 }) {
   const initial = (user?.name ?? user?.email ?? "U").charAt(0).toUpperCase();
   return (
     <DropdownMenuItem
       onPress={onPress}
       className="h-12 gap-3"
-      accessibilityLabel="账户设置"
+      accessibilityLabel={label}
     >
       {user?.avatar_url ? (
         <Image
@@ -245,11 +254,15 @@ function WorkspaceCard({
   currentWorkspaceAvatarUrl,
   onPress,
   chevronTint,
+  workspaceLabel,
+  switchLabel,
 }: {
   currentWorkspaceName: string | undefined;
   currentWorkspaceAvatarUrl: string | null | undefined;
   onPress: () => void;
   chevronTint: string;
+  workspaceLabel: string;
+  switchLabel: string;
 }) {
   const { data } = useQuery(workspaceListOptions());
   const canSwitch = (data?.length ?? 0) > 1;
@@ -260,11 +273,11 @@ function WorkspaceCard({
       disabled={!canSwitch}
       className="h-12 gap-3"
       accessibilityLabel={
-        canSwitch ? "切换工作区" : currentWorkspaceName ?? "工作区"
+        canSwitch ? switchLabel : currentWorkspaceName ?? workspaceLabel
       }
     >
       <WorkspaceAvatar
-        name={currentWorkspaceName ?? "工作区"}
+        name={currentWorkspaceName ?? workspaceLabel}
         avatarUrl={currentWorkspaceAvatarUrl}
         size={32}
       />
@@ -273,7 +286,7 @@ function WorkspaceCard({
           className="text-sm font-medium text-foreground"
           numberOfLines={1}
         >
-          {currentWorkspaceName ?? "工作区"}
+          {currentWorkspaceName ?? workspaceLabel}
         </Text>
       </View>
       {canSwitch ? (

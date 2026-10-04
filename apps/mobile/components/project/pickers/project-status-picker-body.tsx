@@ -14,6 +14,7 @@ import {
   PROJECT_STATUS_LABEL,
 } from "@/lib/project-status";
 import { THEME } from "@/lib/theme";
+import { useT } from "@/lib/i18n/use-translation";
 
 interface Props {
   value: ProjectStatus | string;
@@ -21,6 +22,7 @@ interface Props {
 }
 
 export function ProjectStatusPickerBody({ value, onChange }: Props) {
+  const t = useT();
   const { colorScheme } = useColorScheme();
   const checkColor =
     colorScheme === "dark" ? THEME.dark.primary : THEME.light.primary;
@@ -28,7 +30,7 @@ export function ProjectStatusPickerBody({ value, onChange }: Props) {
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
       <View className="px-4 pt-3 pb-2">
-        <Text className="text-lg font-semibold text-foreground">状态</Text>
+        <Text className="text-lg font-semibold text-foreground">{t.projects.status}</Text>
       </View>
       <View className="px-2">
         {PROJECT_STATUSES.map((status) => {

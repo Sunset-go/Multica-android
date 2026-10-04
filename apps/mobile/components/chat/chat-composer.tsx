@@ -35,6 +35,7 @@ import { MessageComposer } from "@/components/composer/message-composer";
 import { useWorkspaceStore } from "@/data/workspace-store";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { THEME } from "@/lib/theme";
+import { useT } from "@/lib/i18n/use-translation";
 
 interface Props {
   /** Current draft text (controlled). Empty string = no draft. */
@@ -72,6 +73,7 @@ export function ChatComposer({
   disabledReason,
 }: Props) {
   const wsSlug = useWorkspaceStore((s) => s.currentWorkspaceSlug);
+  const t = useT();
 
   const onSubmit = useCallback(
     async ({
@@ -104,13 +106,13 @@ export function ChatComposer({
         pathname: "/[workspace]/mention-picker",
         params: { workspace: wsSlug ?? "", mode: "chat" },
       }}
-      placeholder={sending ? "智能体正在工作中…" : "消息…"}
+      placeholder={sending ? t.chat.agentWorking : t.chat.messagePlaceholder}
       pillLabel={
         sending
-          ? "智能体正在工作中…"
+          ? t.chat.agentWorking
           : disabled
-            ? (disabledReason ?? "无法对话")
-            : "消息…"
+            ? (disabledReason ?? t.chat.chatUnavailable)
+            : t.chat.messagePlaceholder
       }
       pillIcon="chatbubble-ellipses-outline"
       disabled={disabled}
@@ -123,6 +125,7 @@ export function ChatComposer({
 }
 
 function StopButton({ onPress }: { onPress: () => void }) {
+  const t = useT();
   const { colorScheme } = useColorScheme();
   const theme = THEME[colorScheme];
   return (
@@ -136,7 +139,7 @@ function StopButton({ onPress }: { onPress: () => void }) {
         className="h-8 w-8 items-center justify-center rounded-full bg-foreground active:opacity-80"
         hitSlop={12}
         accessibilityRole="button"
-        accessibilityLabel="停止智能体"
+        accessibilityLabel={t.chat.stopAgent}
       >
         <View
           style={{

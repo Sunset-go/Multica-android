@@ -10,8 +10,10 @@ import { Pressable } from "react-native";
 import { router } from "expo-router";
 import { Text } from "@/components/ui/text";
 import { useWorkspaceStore } from "@/data/workspace-store";
+import { useT } from "@/lib/i18n/use-translation";
 
 export function NoAgentBanner() {
+  const t = useT();
   const wsSlug = useWorkspaceStore((s) => s.currentWorkspaceSlug);
 
   const handlePress = () => {
@@ -24,13 +26,13 @@ export function NoAgentBanner() {
       onPress={handlePress}
       className="mx-3 mt-2 mb-1 rounded-xl border border-border bg-secondary/50 px-3 py-2 active:opacity-80"
       accessibilityRole="button"
-      accessibilityLabel="无可用智能体，打开智能体设置"
+      accessibilityLabel={t.chat.noAgentAvailable}
     >
       <Text className="text-sm font-medium text-foreground">
-        无可用智能体
+        {t.chat.noAgentAvailable}
       </Text>
       <Text className="text-xs text-muted-foreground mt-0.5">
-        在“更多” → “智能体”中添加或启用智能体后即可开始对话。
+        {t.chat.noAgentAvailableMsg}
       </Text>
     </Pressable>
   );

@@ -88,9 +88,11 @@ import { OfflineBanner } from "@/components/chat/offline-banner";
 import { RuntimeRequiredBanner } from "@/components/chat/runtime-required-banner";
 import { useChatSelectStore } from "@/data/chat-select-store";
 import { isAgentRuntimeBound } from "@/lib/is-agent-runtime-bound";
+import { useT } from "@/lib/i18n/use-translation";
 
 export default function ChatTab() {
   const qc = useQueryClient();
+  const t = useT();
   const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const wsSlug = useWorkspaceStore((s) => s.currentWorkspaceSlug);
   const userId = useAuthStore((s) => s.user?.id);
@@ -353,8 +355,8 @@ export default function ChatTab() {
       if (!currentAgent) return;
       if (!runtimeBound) {
         Alert.alert(
-          "需要运行时",
-          "在发送消息前，请先在网页或桌面端为该智能体绑定运行时。",
+          t.chat.runtimeRequired,
+          t.chat.runtimeRequiredMsg,
         );
         return;
       }
@@ -494,12 +496,12 @@ export default function ChatTab() {
   const handleDeleteActive = useCallback(() => {
     if (!activeSession) return;
     Alert.alert(
-      "删除此聊天？",
-      activeSession.title || "未命名聊天",
+      t.chat.deleteConfirmTitle,
+      activeSession.title || t.chat.untitled,
       [
-        { text: "取消", style: "cancel" },
+        { text: t.common.cancel, style: "cancel" },
         {
-          text: "删除",
+          text: t.common.delete,
           style: "destructive",
           onPress: () => {
             const id = activeSession.id;
@@ -519,13 +521,13 @@ export default function ChatTab() {
     isArchived === true ||
     !runtimeBound;
   const disabledReason = !currentAgent
-    ? "未选择智能体"
+    ? t.chat.noAgentSelected
     : availability === "none"
-      ? "此工作区没有智能体"
+      ? t.chat.noAgents
       : isArchived
-        ? "此聊天已归档"
+        ? t.chat.chatArchived
         : !runtimeBound
-          ? "智能体需要绑定运行时"
+          ? t.chat.agentNeedsRuntime
         : undefined;
 
   return (

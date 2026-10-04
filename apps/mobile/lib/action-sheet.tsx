@@ -36,6 +36,7 @@ import { create } from "zustand";
 import { Text } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 import { stripMarkdown } from "@/lib/strip-markdown";
+import { useT } from "@/lib/i18n/use-translation";
 
 export interface ActionSheetOptions {
   title?: string;
@@ -112,6 +113,7 @@ export function showActionSheet(
 export function ActionSheetHost() {
   const { visible, config, onSelect } = useActionSheetStore();
   const selectable = useSelectableTextStore();
+  const t = useT();
 
   // Both modals are Android-only (iOS uses ActionSheetIOS / native
   // in-place selection). `visible` guards the action card; `selectable`
@@ -250,7 +252,7 @@ export function ActionSheetHost() {
                   className="flex-1 px-4 py-3 active:bg-secondary"
                 >
                   <Text className="text-base text-center text-foreground">
-                    复制全部
+                    {t.common.copyAll}
                   </Text>
                 </Pressable>
                 <Pressable
@@ -258,7 +260,7 @@ export function ActionSheetHost() {
                   className="flex-1 px-4 py-3 border-l border-border active:bg-secondary"
                 >
                   <Text className="text-base text-center text-foreground font-semibold">
-                    关闭
+                    {t.common.close}
                   </Text>
                 </Pressable>
               </View>

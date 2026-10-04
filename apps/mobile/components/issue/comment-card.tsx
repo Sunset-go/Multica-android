@@ -51,6 +51,7 @@ import { issueAttachmentsOptions } from "@/data/queries/issues";
 import { useFailedCommentsStore } from "@/data/stores/failed-comments-store";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { THEME } from "@/lib/theme";
+import { useT } from "@/lib/i18n/use-translation";
 import { cn } from "@/lib/utils";
 import { ReactionBar } from "./reaction-bar";
 import { useCommentLongPress } from "./comment-context-menu";
@@ -210,6 +211,7 @@ function ResolvedThreadBar({
   replies: TimelineEntry[];
   onExpand: () => void;
 }) {
+  const t = useT();
   const { getName } = useActorLookup();
   const { colorScheme } = useColorScheme();
   const mutedFg = THEME[colorScheme].mutedForeground;
@@ -245,7 +247,7 @@ function ResolvedThreadBar({
         onPress={onExpand}
         className="flex-row items-center gap-2.5 px-4 py-3 rounded-2xl bg-surface-1 active:opacity-70"
         accessibilityRole="button"
-        accessibilityLabel={`由 ${authorsLabel} 解决的线程，共 ${total} 条消息。点击展开。`}
+        accessibilityLabel={t.issues.resolvedThreadLabel(authorsLabel, total)}
       >
         <Ionicons name="checkmark-circle" size={18} color={mutedFg} />
         <Text
@@ -278,6 +280,7 @@ function ResolvedIndicator({
   entry: TimelineEntry;
   onCollapse: () => void;
 }) {
+  const t = useT();
   const { getName } = useActorLookup();
   const { colorScheme } = useColorScheme();
   const mutedFg = THEME[colorScheme].mutedForeground;
@@ -291,17 +294,17 @@ function ResolvedIndicator({
       onPress={onCollapse}
       className="flex-row items-center gap-2 active:opacity-60"
       accessibilityRole="button"
-      accessibilityLabel="折叠已解决线程"
+      accessibilityLabel={t.issues.collapseResolved}
     >
       <Ionicons name="checkmark-circle" size={14} color={mutedFg} />
       <Text className="text-xs text-muted-foreground flex-1" numberOfLines={1}>
-        由 
+        {t.issues.resolvedBy}{" "}
         <Text className="text-xs text-foreground font-medium">
           {resolverName}
         </Text>
         {entry.resolved_at ? ` · ${timeAgo(entry.resolved_at)}` : ""}
       </Text>
-      <Text className="text-xs text-muted-foreground">折叠</Text>
+      <Text className="text-xs text-muted-foreground">{t.issues.collapse}</Text>
     </Pressable>
   );
 }
@@ -544,6 +547,7 @@ function FailedActions({
   onRetry: () => void;
   onDiscard: () => void;
 }) {
+  const t = useT();
   const { colorScheme } = useColorScheme();
   const destructive = THEME[colorScheme].destructive;
   return (
@@ -553,24 +557,24 @@ function FailedActions({
         className="flex-1 text-xs text-destructive"
         numberOfLines={1}
       >
-        {error || "发送失败"}
+        {error || t.issues.failedToSend}
       </Text>
       <Pressable
         onPress={onRetry}
         hitSlop={6}
         accessibilityRole="button"
-        accessibilityLabel="重试发送评论"
+        accessibilityLabel={t.issues.retrySend}
       >
-        <Text className="text-xs text-primary font-medium">重试</Text>
+        <Text className="text-xs text-primary font-medium">{t.common.retry}</Text>
       </Pressable>
       <Pressable
         onPress={onDiscard}
         hitSlop={6}
         accessibilityRole="button"
-        accessibilityLabel="丢弃发送失败的评论"
+        accessibilityLabel={t.issues.discardFailed}
       >
         <Text className="text-xs text-muted-foreground font-medium">
-          丢弃
+          {t.common.discard}
         </Text>
       </Pressable>
     </View>

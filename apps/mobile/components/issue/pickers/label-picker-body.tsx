@@ -25,6 +25,7 @@ import { useWorkspaceStore } from "@/data/workspace-store";
 import { useScrollToTopOnChange } from "@/lib/use-scroll-to-top-on-change";
 import { pickInlineColor } from "@/lib/inline-color";
 import { THEME } from "@/lib/theme";
+import { useT } from "@/lib/i18n/use-translation";
 
 type Row =
   | { kind: "create"; name: string }
@@ -46,6 +47,7 @@ export function LabelPickerBody({
   onDetach,
   onCreate,
 }: Props) {
+  const t = useT();
   const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const { data: labels = [] } = useQuery(labelListOptions(wsId));
   const listRef = useScrollToTopOnChange(query);
@@ -147,8 +149,8 @@ export function LabelPickerBody({
         <View className="px-3 py-8 items-center">
           <Text className="text-sm text-muted-foreground text-center">
             {query
-              ? "无匹配结果。"
-              : "此工作区尚未添加标签。"}
+              ? t.projects.noMatches
+              : t.projects.noLabels}
           </Text>
         </View>
       }

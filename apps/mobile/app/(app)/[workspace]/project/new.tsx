@@ -42,6 +42,7 @@ import {
 import { useCreateProject } from "@/data/mutations/projects";
 import { useNewProjectDraftStore } from "@/data/stores/new-project-draft-store";
 import { useWorkspaceStore } from "@/data/workspace-store";
+import { useT } from "@/lib/i18n/use-translation";
 
 /**
  * Typed map of new-project picker route pathnames. Keeps `router.push` calls
@@ -55,6 +56,7 @@ const NEW_PROJECT_PICKER_PATHNAMES = {
 } as const satisfies Record<NewProjectPickerField, string>;
 
 export default function NewProject() {
+  const t = useT();
   const wsSlug = useWorkspaceStore((s) => s.currentWorkspaceSlug);
   const create = useCreateProject();
 
@@ -92,12 +94,12 @@ export default function NewProject() {
       return;
     }
     Alert.alert(
-      "放弃项目？",
-      "草稿将会丢失。",
+      t.projects.discardProject,
+      t.projects.discardProjectMsg,
       [
-        { text: "继续编辑", style: "cancel" },
+        { text: t.common.keepEditing, style: "cancel" },
         {
-          text: "放弃",
+          text: t.common.discard,
           style: "destructive",
           onPress: () => {
             resetDraft();
@@ -106,7 +108,7 @@ export default function NewProject() {
         },
       ],
     );
-  }, [dirty, resetDraft]);
+  }, [dirty, resetDraft, t]);
 
   const onCreate = useCallback(() => {
     if (!canCreate) return;
@@ -133,8 +135,8 @@ export default function NewProject() {
         },
         onError: (err) => {
           Alert.alert(
-            "创建项目失败",
-            err instanceof Error ? err.message : "未知错误",
+            t.projects.createFailed,
+            err instanceof Error ? err.message : t.common.unknownError,
           );
         },
       },
@@ -149,15 +151,16 @@ export default function NewProject() {
     priority,
     wsSlug,
     resetDraft,
+    t,
   ]);
 
   const headerLeft = useCallback(() => {
     return (
       <Pressable onPress={onCancel} className="px-1 py-1">
-        <Text className="text-base text-brand">取消</Text>
+        <Text className="text-base text-brand">{t.common.cancel}</Text>
       </Pressable>
     );
-  }, [onCancel]);
+  }, [onCancel, t]);
 
   const headerRight = useCallback(() => {
     return (
@@ -167,11 +170,11 @@ export default function NewProject() {
         className={canCreate ? "px-1 py-1" : "px-1 py-1 opacity-40"}
       >
         <Text className="text-base text-brand font-semibold">
-          {create.isPending ? "创建中…" : "创建"}
+          {create.isPending ? t.projects.creating : t.common.create}
         </Text>
       </Pressable>
     );
-  }, [canCreate, onCreate, create.isPending]);
+  }, [canCreate, onCreate, create.isPending, t]);
 
   return (
     <>
@@ -185,7 +188,7 @@ export default function NewProject() {
           contentContainerClassName="px-4 pt-4 pb-6 gap-4"
           keyboardShouldPersistTaps="handled"
         >
-          <Field label="图标（表情）">
+          <Field label={t.projects.iconEmoji}>
             <TextInput
               value={icon}
               onChangeText={(v) => setIcon(v.slice(0, 4))}
@@ -196,11 +199,11 @@ export default function NewProject() {
             />
           </Field>
 
-          <Field label="标题">
+          <Field label={t.projects.titleField}>
             <TextInput
               value={title}
               onChangeText={setTitle}
-              placeholder="项目标题"
+              placeholder={t.projects.titlePlaceholder}
               placeholderTextColor={MOBILE_PLACEHOLDER_COLOR}
               className="text-base text-foreground bg-secondary/50 rounded-md px-3 py-2"
               autoFocus
@@ -208,11 +211,11 @@ export default function NewProject() {
             />
           </Field>
 
-          <Field label="描述">
+          <Field label={t.projects.descriptionField}>
             <AutosizeTextArea
               value={description}
               onChangeText={setDescription}
-              placeholder="这个项目是关于什么的？"
+              placeholder={t.projects.descriptionPlaceholder}
               className="bg-secondary/50 rounded-md px-3 py-2"
               minHeight={MIN_BODY_INPUT_HEIGHT_PX}
             />
@@ -220,7 +223,7 @@ export default function NewProject() {
 
           <View className="flex-row gap-2">
             <View className="flex-1">
-              <Field label="状态">
+              <Field label={t.projects.statusField}>
                 <Pressable
                   onPress={() => openPicker("status")}
                   className="flex-row items-center gap-2 bg-secondary/50 rounded-md px-3 py-2.5"
@@ -233,7 +236,7 @@ export default function NewProject() {
               </Field>
             </View>
             <View className="flex-1">
-              <Field label="优先级">
+              <Field label={t.projects.priorityField}>
                 <Pressable
                   onPress={() => openPicker("priority")}
                   className="flex-row items-center gap-2 bg-secondary/50 rounded-md px-3 py-2.5"

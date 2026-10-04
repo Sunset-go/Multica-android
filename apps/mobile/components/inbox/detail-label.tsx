@@ -13,7 +13,6 @@
 import { View } from "react-native";
 import type {
   InboxItem,
-  InboxItemType,
   IssueStatus,
   IssuePriority,
 } from "@multica/core/types";
@@ -22,54 +21,13 @@ import { Text } from "@/components/ui/text";
 import { StatusIcon } from "@/components/ui/status-icon";
 import { PriorityIcon } from "@/components/ui/priority-icon";
 import { useActorLookup } from "@/data/use-actor-name";
+import { useLanguageStore } from "@/data/language-store";
+import { useT, type Locale } from "@/lib/i18n/use-translation";
 import { cn } from "@/lib/utils";
 
-// Mirrors STATUS_CONFIG.label in packages/core/issues/config/status.ts
-const STATUS_LABEL: Record<IssueStatus, string> = {
-  backlog: "待办",
-  todo: "待开始",
-  in_progress: "进行中",
-  in_review: "审阅中",
-  done: "已完成",
-  blocked: "已阻塞",
-  cancelled: "已取消",
-};
-
-// Mirrors PRIORITY_CONFIG.label in packages/core/issues/config/priority.ts
-const PRIORITY_LABEL: Record<IssuePriority, string> = {
-  urgent: "紧急",
-  high: "高",
-  medium: "中",
-  low: "低",
-  none: "无优先级",
-};
-
-// Mirrors useTypeLabels in packages/views/inbox/components/inbox-detail-label.tsx
-const TYPE_LABEL: Record<InboxItemType, string> = {
-  issue_assigned: "分配给我",
-  issue_subscribed: "已订阅",
-  unassigned: "已移除",
-  assignee_changed: "重新分配",
-  status_changed: "状态变更",
-  priority_changed: "优先级变更",
-  start_date_changed: "开始日期变更",
-  due_date_changed: "截止日期变更",
-  new_comment: "新评论",
-  mentioned: "被提及",
-  review_requested: "请求审阅",
-  task_completed: "任务完成",
-  task_failed: "任务失败",
-  agent_blocked: "智能体阻塞",
-  agent_completed: "智能体完成",
-  reaction_added: "新增表情",
-  quick_create_done: "快速创建完成",
-  quick_create_failed: "快速创建失败",
-  quick_create_unconfirmed: "快速创建需确认",
-};
-
 // due_date is a calendar day — format timezone-safely (no offset day shift).
-function shortDate(dateStr: string): string {
-  return formatDateOnly(dateStr, { month: "short", day: "numeric" }, "zh-CN");
+function shortDate(dateStr: string, locale: Locale): string {
+  return formatDateOnly(dateStr, { month: "short", day: "numeric" }, locale === "zh" ? "zh-CN" : "en-US");
 }
 
 function singleLine(value: string | null | undefined): string {
@@ -83,6 +41,8 @@ export function InboxDetailLabel({
   item: InboxItem;
   className?: string;
 }) {
+  const t = useT();
+  const locale = useLanguageStore((s) => s.locale);
   const { getName } = useActorLookup();
   const details = item.details ?? {};
 
@@ -91,10 +51,10 @@ export function InboxDetailLabel({
     const status = details.to as IssueStatus;
     return (
       <View className={cn("flex-row items-center gap-1", className)}>
-        <Text className="text-xs text-muted-foreground">状态设为</Text>
+        <Text className="text-xs text-muted-foreground">{t.inboxDetail.setStatusTo}</Text>
         <StatusIcon status={status} size={12} />
         <Text className="text-xs text-muted-foreground" numberOfLines={1}>
-          {STATUS_LABEL[status] ?? status}
+          {t.issueStatus[status] ?? status}
         </Text>
       </View>
     );
@@ -104,10 +64,10 @@ export function InboxDetailLabel({
     const priority = details.to as IssuePriority;
     return (
       <View className={cn("flex-row items-center gap-1", className)}>
-        <Text className="text-xs text-muted-foreground">优先级设为</Text>
+        <Text className="text-xs text-muted-foreground">{t.inboxDetail.setPriorityTo}</Text>
         <PriorityIcon priority={priority} size={12} />
         <Text className="text-xs text-muted-foreground" numberOfLines={1}>
-          {PRIORITY_LABEL[priority] ?? priority}
+          {t.issuePriority[priority] ?? priority}
         </Text>
       </View>
     );
@@ -123,38 +83,38 @@ export function InboxDetailLabel({
             (details.new_assignee_type ?? "member") as "member" | "agent",
             details.new_assignee_id,
           );
-          return `分配给 ${name}`;
+          return t.inboxDetail.assignedTo(name);
         }
-        return TYPE_LABEL[item.type];
+        return t.inboxDetail.type[item.type];
       case "unassigned":
-        return "移除了负责人";
+        return t.inboxDetail.removedAssignee;
       case "due_date_changed":
         return details.to
-          ? `截止日期设为 ${shortDate(details.to)}`
-          : "移除了截止日期";
+          ? t.inboxDetail.dueDateSetTo(shortDate(details.to, locale))
+          : t.inboxDetail.removedDueDate;
       case "new_comment":
-        return singleLine(item.body) || TYPE_LABEL[item.type];
+        return singleLine(item.body) || t.inboxDetail.type[item.type];
       case "reaction_added":
         return details.emoji
-          ? `使用了表情 ${details.emoji}`
-          : TYPE_LABEL[item.type];
+          ? t.inboxDetail.reactedWith(details.emoji)
+          : t.inboxDetail.type[item.type];
       case "quick_create_done":
         return details.identifier
-          ? `通过智能体创建：${details.identifier}`
-          : TYPE_LABEL[item.type];
+          ? t.inboxDetail.createdByAgent(details.identifier)
+          : t.inboxDetail.type[item.type];
       case "quick_create_failed": {
         const detail = singleLine(details.error) || singleLine(item.body);
-        return detail ? `失败：${detail}` : TYPE_LABEL[item.type];
+        return detail ? t.inboxDetail.failedDetail(detail) : t.inboxDetail.type[item.type];
       }
       // Mirrors packages/views/inbox/components/inbox-detail-label.tsx: the
       // unconfirmed outcome deliberately drops the "失败：" prefix, because
       // the issue may actually have been created.
       case "quick_create_unconfirmed": {
         const detail = singleLine(details.error) || singleLine(item.body);
-        return detail || TYPE_LABEL[item.type];
+        return detail || t.inboxDetail.type[item.type];
       }
       default:
-        return TYPE_LABEL[item.type] ?? item.type;
+        return t.inboxDetail.type[item.type] ?? item.type;
     }
   })();
 

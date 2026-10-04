@@ -45,6 +45,7 @@ import {
 import { filterIssues } from "@/lib/filter-issues";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { THEME } from "@/lib/theme";
+import { useT, type TranslationDict } from "@/lib/i18n/use-translation";
 
 // Mobile pill row has tight width on SE3 (375pt). Three pills + Filter icon
 // must fit in 343pt usable space, so the agents scope renders "Agents" — the
@@ -52,15 +53,12 @@ import { THEME } from "@/lib/theme";
 // under Dynamic Type. Semantics unchanged: same backend predicate
 // (`involves_user_id`, MUL-2397) covers owned agents + related squads; the
 // empty state copy still says "agents or squads".
-const SCOPES: { value: MyIssuesScope; label: string }[] = [
-  { value: "assigned", label: "分配给我" },
-  { value: "created", label: "我创建的" },
-  { value: "agents", label: "智能体" },
-];
+
 
 type IssueSection = { status: IssueStatus; data: Issue[] };
 
 export default function MyIssues() {
+  const t = useT();
   const isFocused = useIsFocused();
   const userId = useAuthStore((s) => s.user?.id ?? null);
   const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
@@ -70,6 +68,12 @@ export default function MyIssues() {
   const setScope = useMyIssuesViewStore((s) => s.setScope);
   const statusFilters = useMyIssuesViewStore((s) => s.statusFilters);
   const priorityFilters = useMyIssuesViewStore((s) => s.priorityFilters);
+
+  const scopes: { value: MyIssuesScope; label: string }[] = [
+    { value: "assigned", label: t.issues.assignedToMe },
+    { value: "created", label: t.issues.createdByMe },
+    { value: "agents", label: t.issues.agentsTab },
+  ];
 
   const openFilter = () => {
     if (!wsSlug) return;
@@ -140,9 +144,9 @@ export default function MyIssues() {
 
   return (
     <View className="flex-1 bg-background">
-      <Header title="我的任务" right={<HeaderActions />} />
+      <Header title={t.issues.myIssues} right={<HeaderActions />} />
       <ScopeToolbar
-        scopes={SCOPES}
+        scopes={scopes}
         scope={scope}
         onChange={(v) => setScope(v)}
         onOpenFilter={openFilter}
@@ -165,19 +169,19 @@ export default function MyIssues() {
       ) : error ? (
         <View className="px-4 gap-3 pt-4">
           <Text className="text-sm text-destructive">
-            任务加载失败：{" "}
-            {error instanceof Error ? error.message : "未知错误"}
+            {t.issues.loadFailed}: {" "}
+            {error instanceof Error ? error.message : t.common.unknownError}
           </Text>
           <Button variant="outline" onPress={() => refetch()}>
-            <Text>重试</Text>
+            <Text>{t.common.retry}</Text>
           </Button>
         </View>
       ) : showEmptyState ? (
         <EmptyState
           message={
             hasActiveFilters
-              ? "没有符合当前筛选的任务。"
-              : emptyMessageForScope(scope)
+              ? t.issues.noMatch
+              : emptyMessageForScope(scope, t)
           }
         />
       ) : (
@@ -227,6 +231,7 @@ function FilterButton({
   onPress: () => void;
   hasActiveFilters: boolean;
 }) {
+  const t = useT();
   const { colorScheme } = useColorScheme();
   return (
     <View style={{ position: "relative" }} className="ml-2">
@@ -234,7 +239,7 @@ function FilterButton({
         variant="outline"
         size="sm"
         onPress={onPress}
-        accessibilityLabel="筛选"
+        accessibilityLabel={t.issues.filter}
         className="w-9 px-0"
       >
         <Ionicons
@@ -374,13 +379,13 @@ function EmptyState({ message }: { message: string }) {
   );
 }
 
-function emptyMessageForScope(scope: MyIssuesScope): string {
+function emptyMessageForScope(scope: MyIssuesScope, t: TranslationDict): string {
   switch (scope) {
     case "assigned":
-      return "没有分配给您的任务。";
+      return t.issues.noAssigned;
     case "created":
-      return "您尚未创建任何任务。";
+      return t.issues.noCreated;
     case "agents":
-      return "还没有分配给您或智能体小队的任务。";
+      return t.issues.noAgentIssues;
   }
 }

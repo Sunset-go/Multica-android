@@ -36,22 +36,24 @@ import { useWorkspaceStore } from "@/data/workspace-store";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { THEME } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/use-translation";
 
 export default function SwitchWorkspaceRoute() {
   const activeSlug = useWorkspaceStore((s) => s.currentWorkspaceSlug);
   const { colorScheme } = useColorScheme();
   const t = THEME[colorScheme];
+  const tr = useT();
   const { data, isLoading } = useQuery(workspaceListOptions());
 
   const onSelect = (ws: Workspace) => {
     if (ws.slug === activeSlug) return;
     Alert.alert(
-      "切换工作区",
-      `切换到 “${ws.name}”？`,
+      tr.switchWorkspace.title,
+      tr.switchWorkspace.confirm(ws.name),
       [
-        { text: "取消", style: "cancel" },
+        { text: tr.common.cancel, style: "cancel" },
         {
-          text: "切换",
+          text: tr.switchWorkspace.switch,
           onPress: () => {
             router.dismiss();
             router.replace(`/${ws.slug}/inbox`);
@@ -65,7 +67,7 @@ export default function SwitchWorkspaceRoute() {
     <View className="flex-1">
       <View className="px-4 pt-4 pb-3">
         <Text className="text-base font-semibold text-foreground">
-          切换工作区
+          {tr.switchWorkspace.title}
         </Text>
       </View>
       {isLoading ? (
@@ -100,14 +102,15 @@ function WorkspaceRow({
   onPress: () => void;
   iconTint: string;
 }) {
+  const t = useT();
   return (
     <Pressable
       onPress={onPress}
       disabled={active}
       accessibilityLabel={
         active
-          ? `${workspace.name}，当前工作区`
-          : `切换到 ${workspace.name}`
+          ? t.switchWorkspace.current(workspace.name)
+          : t.switchWorkspace.switchTo(workspace.name)
       }
       className={cn(
         "flex-row items-center gap-3 px-4 py-3 active:bg-secondary",

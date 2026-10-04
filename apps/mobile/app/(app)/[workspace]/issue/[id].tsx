@@ -38,8 +38,10 @@ import { useViewedIssuesStore } from "@/data/viewed-issues-store";
 import { useCommentSelectStore } from "@/data/comment-select-store";
 import { useReplyTargetStore } from "@/data/stores/reply-target-store";
 import { showActionSheet } from "@/lib/action-sheet";
+import { useT, getT } from "@/lib/i18n/use-translation";
 
 export default function IssueDetail() {
+  const t = useT();
   // `highlight` + `h` come from inbox deep-link (apps/mobile/app/(app)/
   // [workspace]/(tabs)/inbox.tsx). `highlight` is the target comment id;
   // `h` is a per-tap nonce so re-tapping the same row re-fires the
@@ -121,12 +123,12 @@ export default function IssueDetail() {
     const issueLink = webUrl
       ? `${webUrl}/${wsSlug}/issue/${issue.identifier}`
       : null;
-    const options: string[] = ["取消"];
-    options.push(isPinned ? "取消固定" : "固定");
-    options.push("编辑详情");
-    if (issueLink) options.push("复制链接");
-    if (issueLink) options.push("在网页中打开");
-    options.push("删除任务");
+    const options: string[] = [t.common.cancel];
+    options.push(isPinned ? t.issues.unpin : t.issues.pin);
+    options.push(t.issues.editDetails);
+    if (issueLink) options.push(t.common.copyLink);
+    if (issueLink) options.push(t.common.openOnWeb);
+    options.push(t.issues.deleteIssue);
     const destructiveIndex = options.length - 1;
     showActionSheet(
       {
@@ -137,17 +139,17 @@ export default function IssueDetail() {
       },
       (i) => {
         const label = options[i];
-        if (label === "固定") {
+        if (label === t.issues.pin) {
           createPin.mutate({ item_type: "issue", item_id: issue.id });
-        } else if (label === "取消固定") {
+        } else if (label === t.issues.unpin) {
           deletePin.mutate({ itemType: "issue", itemId: issue.id });
-        } else if (label === "编辑详情") {
+        } else if (label === t.issues.editDetails) {
           if (wsSlug) router.push(`/${wsSlug}/issue/${issue.id}/edit`);
-        } else if (label === "复制链接" && issueLink) {
+        } else if (label === t.common.copyLink && issueLink) {
           Clipboard.setStringAsync(issueLink);
-        } else if (label === "在网页中打开" && issueLink) {
+        } else if (label === t.common.openOnWeb && issueLink) {
           Linking.openURL(issueLink);
-        } else if (label === "删除任务") {
+        } else if (label === t.issues.deleteIssue) {
           confirmDelete(issue, () =>
             deleteIssue.mutate(issue.id, {
               onSuccess: () => router.back(),
@@ -156,14 +158,14 @@ export default function IssueDetail() {
         }
       },
     );
-  }, [issue, wsSlug, deleteIssue, isPinned, createPin, deletePin]);
+  }, [issue, wsSlug, deleteIssue, isPinned, createPin, deletePin, t]);
 
   return (
     <View className="flex-1 bg-background">
       <Stack.Screen
         options={{
-          title: issue?.identifier ?? "任务",
-          headerBackTitle: "返回",
+          title: issue?.identifier ?? t.screens.issue,
+          headerBackTitle: t.common.back,
           headerRight: issue
             ? () => (
                 <View className="flex-row items-center gap-2">
@@ -174,7 +176,7 @@ export default function IssueDetail() {
                   <IconButton
                     name="ellipsis-horizontal"
                     onPress={onPressMore}
-                    accessibilityLabel="任务操作"
+                    accessibilityLabel={t.issues.issueActions}
                   />
                 </View>
               )
@@ -186,13 +188,13 @@ export default function IssueDetail() {
       ) : detail.error || !issue ? (
         <View className="flex-1 items-center justify-center px-6 gap-3">
           <Text className="text-sm text-destructive text-center">
-            任务加载失败：{" "}
+            {t.issues.loadFailedIssue}：{" "}
             {detail.error instanceof Error
               ? detail.error.message
-              : "未找到"}
+              : t.issues.notFound}
           </Text>
           <Button variant="outline" onPress={() => detail.refetch()}>
-            <Text>重试</Text>
+            <Text>{t.common.retry}</Text>
           </Button>
         </View>
       ) : (
@@ -214,12 +216,13 @@ export default function IssueDetail() {
 }
 
 function confirmDelete(issue: Issue, onConfirm: () => void) {
+  const t = getT();
   Alert.alert(
-    "删除任务？",
-    `${issue.identifier} 及其评论、表情和附件将被永久删除，无法撤销。`,
+    t.issues.deleteIssueTitle,
+    t.issues.deleteIssueMsg(issue.identifier),
     [
-      { text: "取消", style: "cancel" },
-      { text: "删除", style: "destructive", onPress: onConfirm },
+      { text: t.common.cancel, style: "cancel" },
+      { text: t.common.delete, style: "destructive", onPress: onConfirm },
     ],
   );
 }

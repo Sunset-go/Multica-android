@@ -15,17 +15,19 @@ import { View } from "react-native";
 import { AutosizeTextArea } from "@/components/ui/autosize-textarea";
 import { MIN_BODY_INPUT_HEIGHT_PX } from "@/components/ui/input-tokens";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/use-translation";
 import type { UseMentionInputReturn } from "@/lib/use-mention-input";
 
 export function DescriptionField({
   description,
   disabled,
-  placeholder = "描述…（输入 @ 提及）",
+  placeholder,
 }: {
   description: UseMentionInputReturn;
   disabled: boolean;
   placeholder?: string;
 }) {
+  const t = useT();
   const [focused, setFocused] = useState(false);
   return (
     <View
@@ -43,7 +45,7 @@ export function DescriptionField({
         onSelectionChange={description.handlers.onSelectionChange}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        placeholder={placeholder}
+        placeholder={placeholder ?? t.issues.descriptionMention}
         className="py-2"
         minHeight={MIN_BODY_INPUT_HEIGHT_PX}
         editable={!disabled}

@@ -19,45 +19,21 @@ import { Separator } from "@/components/ui/separator";
 import { useWorkspaceStore } from "@/data/workspace-store";
 import { notificationPreferenceOptions } from "@/data/queries/notification-preferences";
 import { useUpdateNotificationPreferences } from "@/data/mutations/notification-preferences";
+import { useT } from "@/lib/i18n/use-translation";
 
-const INBOX_GROUPS: Array<{
-  key: Exclude<NotificationGroupKey, "system_notifications">;
-  label: string;
-  description: string;
-}> = [
-  {
-    key: "assignments",
-    label: "分配通知",
-    description: "当您被分配任务或被移除为负责人时。",
-  },
-  {
-    key: "status_changes",
-    label: "状态变更",
-    description: "当任务状态变更时。",
-  },
-  {
-    key: "comments",
-    label: "评论",
-    description: "您订阅的任务有新评论时。",
-  },
-  {
-    key: "mentions",
-    label: "提及",
-    description: "当有人 @提及您时（包括 @所有人 和 @小队）。",
-  },
-  {
-    key: "updates",
-    label: "任务更新",
-    description: "标题、描述、标签、优先级或截止日期的修改。",
-  },
-  {
-    key: "agent_activity",
-    label: "智能体动态",
-    description: "当智能体接受、运行或完成任务时。",
-  },
+const INBOX_GROUP_KEYS: Array<
+  Exclude<NotificationGroupKey, "system_notifications">
+> = [
+  "assignments",
+  "status_changes",
+  "comments",
+  "mentions",
+  "updates",
+  "agent_activity",
 ];
 
 export default function NotificationsSettingsScreen() {
+  const t = useT();
   const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const { data, isLoading, error } = useQuery(
     notificationPreferenceOptions(wsId),
@@ -77,6 +53,23 @@ export default function NotificationsSettingsScreen() {
     mutation.mutate(next);
   };
 
+  const inboxGroups = INBOX_GROUP_KEYS.map((key) => {
+    switch (key) {
+      case "assignments":
+        return { key, label: t.notifications.assignments, description: t.notifications.assignmentsDesc };
+      case "status_changes":
+        return { key, label: t.notifications.statusChanges, description: t.notifications.statusChangesDesc };
+      case "comments":
+        return { key, label: t.notifications.comments, description: t.notifications.commentsDesc };
+      case "mentions":
+        return { key, label: t.notifications.mentions, description: t.notifications.mentionsDesc };
+      case "updates":
+        return { key, label: t.notifications.issueUpdates, description: t.notifications.issueUpdatesDesc };
+      case "agent_activity":
+        return { key, label: t.notifications.agentActivity, description: t.notifications.agentActivityDesc };
+    }
+  });
+
   const systemEnabled = preferences.system_notifications !== "muted";
 
   if (isLoading) {
@@ -91,7 +84,7 @@ export default function NotificationsSettingsScreen() {
     return (
       <View className="flex-1 items-center justify-center bg-background px-6">
         <Text className="text-sm text-destructive text-center">
-          加载通知偏好失败。
+          {t.notifications.loadFailed}
         </Text>
       </View>
     );
@@ -103,12 +96,12 @@ export default function NotificationsSettingsScreen() {
       contentContainerClassName="px-4 py-4 gap-6"
     >
       <Section
-        title="收件箱通知"
-        description="哪些事件会出现在您的收件箱。"
+        title={t.notifications.inboxTitle}
+        description={t.notifications.inboxDesc}
       >
-        {INBOX_GROUPS.map((group, idx) => {
+        {inboxGroups.map((group, idx) => {
           const enabled = preferences[group.key] !== "muted";
-          const isLast = idx === INBOX_GROUPS.length - 1;
+          const isLast = idx === inboxGroups.length - 1;
           return (
             <View key={group.key}>
               <View className="flex-row items-center px-4 py-3 gap-3">
@@ -132,16 +125,16 @@ export default function NotificationsSettingsScreen() {
       </Section>
 
       <Section
-        title="系统"
-        description="Multica 全站公告和重要账户事件。"
+        title={t.notifications.systemTitle}
+        description={t.notifications.systemDesc}
       >
         <View className="flex-row items-center px-4 py-3 gap-3">
           <View className="flex-1">
             <Text className="text-base font-medium text-foreground">
-              系统通知
+              {t.notifications.systemNotifications}
             </Text>
             <Text className="text-xs text-muted-foreground mt-0.5">
-              账户变更、安全告警、产品更新。
+              {t.notifications.systemNotificationsDesc}
             </Text>
           </View>
           <Switch

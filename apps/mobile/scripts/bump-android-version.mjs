@@ -64,7 +64,7 @@ function parseSemver(v) {
 const [maj, min, pat] = setVersion
   ? parseSemver(setVersion)
   : (() => {
-      const [, mj, mn, pt] = parseSemver(prevVersion);
+      const [mj, mn, pt] = parseSemver(prevVersion);
       return [mj, mn, pt + 1];
     })();
 const nextVersion = `${maj}.${min}.${pat}`;

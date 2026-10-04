@@ -17,12 +17,7 @@
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
-
-const STARTER_PROMPTS: { icon: string; text: string }[] = [
-  { icon: "📋", text: "按优先级列出我的未完成任务" },
-  { icon: "📝", text: "总结我今天完成的内容" },
-  { icon: "💡", text: "帮我规划下一步做什么" },
-];
+import { useT } from "@/lib/i18n/use-translation";
 
 interface Props {
   hasSessions: boolean;
@@ -31,6 +26,14 @@ interface Props {
 }
 
 export function ChatEmptyState({ hasSessions, agentName, onPickPrompt }: Props) {
+  const t = useT();
+
+  const STARTER_PROMPTS: { icon: string; text: string }[] = [
+    { icon: "📋", text: t.chat.suggestions.listIssues },
+    { icon: "📝", text: t.chat.suggestions.summarize },
+    { icon: "💡", text: t.chat.suggestions.planNext },
+  ];
+
   // First-time experience: educate before suggesting actions. Starter
   // prompts here would presume the user already knows what chat is for.
   if (!hasSessions) {
@@ -38,19 +41,19 @@ export function ChatEmptyState({ hasSessions, agentName, onPickPrompt }: Props) 
       <View className="flex-1 items-center justify-center px-6 py-8">
         <View className="max-w-xs items-center gap-3">
           <Text className="text-base font-semibold text-foreground text-center">
-            与您的智能体对话
+            {t.chat.chatWithAgents}
           </Text>
           <Text className="text-sm text-muted-foreground text-center">
             <Text className="text-sm text-muted-foreground">
-              ✨ 它们熟悉您的工作区 ——
+              ✨ {t.chat.theyKnow}
             </Text>
             <Text className="text-sm font-medium text-foreground">
-              任务、项目、技能
+              {t.chat.issuesProjectsSkills}
             </Text>
             <Text className="text-sm text-muted-foreground">。</Text>
           </Text>
           <Text className="text-sm text-muted-foreground text-center">
-            可以请求总结、规划一天，或把小任务交出去。
+            {t.chat.askSummary}
           </Text>
         </View>
       </View>
@@ -58,7 +61,7 @@ export function ChatEmptyState({ hasSessions, agentName, onPickPrompt }: Props) 
   }
 
   // Returning user: starter prompts are the fastest path back to action.
-  const title = agentName ? `你好，我是 ${agentName}` : "欢迎回到 Multica";
+  const title = agentName ? t.chat.hiAgent(agentName) : t.chat.welcomeBack;
   return (
     <View className="flex-1 items-center justify-center px-6 py-8 gap-5">
       <View className="items-center gap-1">
@@ -66,7 +69,7 @@ export function ChatEmptyState({ hasSessions, agentName, onPickPrompt }: Props) 
           {title}
         </Text>
         <Text className="text-sm text-muted-foreground text-center">
-          试试这样问
+          {t.chat.tryAsking}
         </Text>
       </View>
       <View className="w-full max-w-xs gap-2">

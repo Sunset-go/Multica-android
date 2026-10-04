@@ -24,6 +24,7 @@ import { View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { TaskMessagePayload } from "@multica/core/types";
 import { Text } from "@/components/ui/text";
+import { useT } from "@/lib/i18n/use-translation";
 import {
   Collapsible,
   CollapsibleContent,
@@ -38,6 +39,7 @@ interface Props {
 }
 
 export function ChatTimeline({ items, isStreaming = false }: Props) {
+  const t = useT();
   const processSteps = items.filter((i) => i.type !== "text");
   if (processSteps.length === 0) return null;
 
@@ -46,7 +48,7 @@ export function ChatTimeline({ items, isStreaming = false }: Props) {
       <CollapsibleTrigger asChild>
         <View
           accessibilityRole="button"
-          accessibilityLabel={`${processSteps.length} 个步骤`}
+          accessibilityLabel={t.chat.stepCount(processSteps.length)}
           className="flex-row items-center gap-1 active:opacity-70"
         >
           <Ionicons name="chevron-forward" size={12} color="#71717a" />

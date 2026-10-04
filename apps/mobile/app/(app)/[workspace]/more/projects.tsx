@@ -28,8 +28,10 @@ import { IconButton } from "@/components/ui/icon-button";
 import { ProjectRow } from "@/components/project/project-row";
 import { projectListOptions } from "@/data/queries/projects";
 import { useWorkspaceStore } from "@/data/workspace-store";
+import { useT } from "@/lib/i18n/use-translation";
 
 export default function ProjectsPage() {
+  const t = useT();
   const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const wsSlug = useWorkspaceStore((s) => s.currentWorkspaceSlug);
 
@@ -64,11 +66,11 @@ export default function ProjectsPage() {
       ) : error ? (
         <View className="px-4 gap-3 pt-4">
           <Text className="text-sm text-destructive">
-            项目加载失败：{" "}
-            {error instanceof Error ? error.message : "未知错误"}
+            {t.projects.loadFailed}：{" "}
+            {error instanceof Error ? error.message : t.common.unknownError}
           </Text>
           <Button variant="outline" onPress={() => refetch()}>
-            <Text>重试</Text>
+            <Text>{t.common.retry}</Text>
           </Button>
         </View>
       ) : sorted.length === 0 ? (
@@ -99,26 +101,28 @@ export default function ProjectsPage() {
 }
 
 function PlusButton({ onPress }: { onPress: () => void }) {
+  const t = useT();
   return (
     <IconButton
       name="add"
       onPress={onPress}
-      accessibilityLabel="新建项目"
+      accessibilityLabel={t.projects.newProject}
     />
   );
 }
 
 function EmptyState({ onCreate }: { onCreate: () => void }) {
+  const t = useT();
   return (
     <View className="flex-1 items-center justify-center px-6 gap-4">
       <Text className="text-base font-medium text-foreground">
-        还没有项目
+        {t.projects.noProjects}
       </Text>
       <Text className="text-sm text-muted-foreground text-center">
-        将相关任务组合成项目，以跟踪进度并指定负责人。
+        {t.projects.noProjectsDesc}
       </Text>
       <Button variant="default" onPress={onCreate}>
-        <Text>创建项目</Text>
+        <Text>{t.projects.createProject}</Text>
       </Button>
     </View>
   );

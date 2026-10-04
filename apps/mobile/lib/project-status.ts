@@ -14,6 +14,7 @@
  *     mobile picks an i18n lib (web uses i18next).
  */
 import type { ProjectPriority, ProjectStatus } from "@multica/core/types";
+import { getT } from "@/lib/i18n/use-translation";
 
 export const PROJECT_STATUSES: ProjectStatus[] = [
   "planned",
@@ -31,21 +32,26 @@ export const PROJECT_PRIORITIES: ProjectPriority[] = [
   "none",
 ];
 
-export const PROJECT_STATUS_LABEL: Record<ProjectStatus, string> = {
-  planned: "计划中",
-  in_progress: "进行中",
-  paused: "已暂停",
-  completed: "已完成",
-  cancelled: "已取消",
-};
+/** Locale-aware label getters. */
+export function getProjectStatusLabel(status: ProjectStatus): string {
+  return getT().projectStatus[status];
+}
 
-export const PROJECT_PRIORITY_LABEL: Record<ProjectPriority, string> = {
-  urgent: "紧急",
-  high: "高",
-  medium: "中",
-  low: "低",
-  none: "无优先级",
-};
+export function getProjectPriorityLabel(priority: ProjectPriority): string {
+  return getT().projectPriority[priority];
+}
+
+/** @deprecated Use getProjectStatusLabel() — locale-aware. */
+export const PROJECT_STATUS_LABEL: Record<ProjectStatus, string> = new Proxy(
+  {} as Record<ProjectStatus, string>,
+  { get: (_, key: string) => getT().projectStatus[key as ProjectStatus] ?? key },
+);
+
+/** @deprecated Use getProjectPriorityLabel() — locale-aware. */
+export const PROJECT_PRIORITY_LABEL: Record<ProjectPriority, string> = new Proxy(
+  {} as Record<ProjectPriority, string>,
+  { get: (_, key: string) => getT().projectPriority[key as ProjectPriority] ?? key },
+);
 
 // Single hex per status, used by the SVG status icon (NativeWind classes
 // can't be read by Svg props at runtime). Matches the semantic intent of

@@ -44,6 +44,7 @@ import {
 import type { MentionMarker } from "@/lib/mention-serialize";
 import { cn } from "@/lib/utils";
 import { isAgentRuntimeBound } from "@/lib/is-agent-runtime-bound";
+import { useT } from "@/lib/i18n/use-translation";
 
 type Mode = "comment" | "chat";
 
@@ -74,6 +75,7 @@ export function MentionSuggestionBar({
   onSelect,
   mode = "comment",
 }: Props) {
+  const t = useT();
   const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const isChat = mode === "chat";
 
@@ -138,11 +140,11 @@ export function MentionSuggestionBar({
 
       const out: Row[] = [];
       if (matchedRecent.length > 0) {
-        out.push({ kind: "section", label: "最近" });
+        out.push({ kind: "section", label: t.search.recent });
         for (const i of matchedRecent) out.push({ kind: "issue", issue: i });
       }
       if (matchedMine.length > 0) {
-        out.push({ kind: "section", label: "我的任务" });
+        out.push({ kind: "section", label: t.issues.myIssues });
         for (const i of matchedMine) out.push({ kind: "issue", issue: i });
       }
       if (out.length === 0) out.push({ kind: "empty" });
@@ -191,20 +193,20 @@ export function MentionSuggestionBar({
     const out: Row[] = [];
     if (showAll) out.push({ kind: "all" });
     if (matchedMembers.length > 0) {
-      out.push({ kind: "section", label: "成员" });
+      out.push({ kind: "section", label: t.projects.member });
       for (const m of matchedMembers) out.push({ kind: "member", member: m });
     }
     if (matchedAgents.length > 0) {
-      out.push({ kind: "section", label: "智能体" });
+      out.push({ kind: "section", label: t.more.agents });
       for (const a of matchedAgents) out.push({ kind: "agent", agent: a });
     }
     if (matchedSquads.length > 0) {
-      out.push({ kind: "section", label: "小队" });
+      out.push({ kind: "section", label: t.projects.squad });
       for (const s of matchedSquads) out.push({ kind: "squad", squad: s });
     }
     if (out.length === 0) out.push({ kind: "empty" });
     return out;
-  }, [isChat, query, recentIssues, myIssuesAll, members, agents, squads, userId]);
+  }, [isChat, query, recentIssues, myIssuesAll, members, agents, squads, userId, t]);
 
   if (!visible) return null;
 
@@ -271,9 +273,9 @@ export function MentionSuggestionBar({
                   <Text className="text-xs font-medium text-brand">@</Text>
                 </View>
                 <Text className="flex-1 text-sm text-foreground">
-                  所有人
+                  {t.projects.everyone}
                 </Text>
-                <Badge label="全部" />
+                <Badge label={t.projects.all} />
               </Pressable>
             );
           }
@@ -297,7 +299,7 @@ export function MentionSuggestionBar({
                 <Text className="flex-1 text-sm text-foreground">
                   {item.member.name}
                 </Text>
-                <Badge label="成员" />
+                <Badge label={t.projects.member} />
               </Pressable>
             );
           }
@@ -323,7 +325,7 @@ export function MentionSuggestionBar({
                   {item.agent.name}
                 </Text>
                 <Badge
-                  label={runtimeBound ? "智能体" : "需运行时"}
+                  label={runtimeBound ? t.more.agents : t.projects.needsRuntime}
                   tone={runtimeBound ? "brand" : "outline"}
                 />
               </Pressable>
@@ -345,7 +347,7 @@ export function MentionSuggestionBar({
                 <Text className="flex-1 text-sm text-foreground">
                   {item.squad.name}
                 </Text>
-                <Badge label="小队" tone="outline" />
+                <Badge label={t.projects.squad} tone="outline" />
               </Pressable>
             );
           }

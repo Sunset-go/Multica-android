@@ -39,8 +39,10 @@ import { issueDetailOptions } from "@/data/queries/issues";
 import { useUpdateIssue } from "@/data/mutations/issues";
 import { useWorkspaceStore } from "@/data/workspace-store";
 import { useMentionInput } from "@/lib/use-mention-input";
+import { useT } from "@/lib/i18n/use-translation";
 
 export default function EditIssue() {
+  const t = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const detail = useQuery(issueDetailOptions(wsId, id));
@@ -86,12 +88,12 @@ export default function EditIssue() {
       return;
     }
     Alert.alert(
-      "放弃更改？",
-      "您对该任务的修改将丢失。",
+      t.issues.discardTitle,
+      t.issues.discardMsg,
       [
-        { text: "继续编辑", style: "cancel" },
+        { text: t.common.keepEditing, style: "cancel" },
         {
-          text: "放弃",
+          text: t.common.discard,
           style: "destructive",
           onPress: () => router.back(),
         },
@@ -113,20 +115,20 @@ export default function EditIssue() {
       onSuccess: () => router.back(),
       onError: (err) => {
         Alert.alert(
-          "保存失败",
-          err instanceof Error ? err.message : "未知错误",
+          t.issues.saveFailed,
+          err instanceof Error ? err.message : t.common.unknownError,
         );
       },
     });
-  }, [canSave, title, currentDescription, descriptionBase, update]);
+  }, [canSave, title, currentDescription, descriptionBase, update, t]);
 
   const headerLeft = useCallback(
     () => (
       <Pressable onPress={onCancel} className="px-1 py-1">
-        <Text className="text-base text-brand">取消</Text>
+        <Text className="text-base text-brand">{t.common.cancel}</Text>
       </Pressable>
     ),
-    [onCancel],
+    [onCancel, t],
   );
 
   const headerRight = useCallback(
@@ -137,11 +139,11 @@ export default function EditIssue() {
         className={canSave ? "px-1 py-1" : "px-1 py-1 opacity-40"}
       >
         <Text className="text-base text-brand font-semibold">
-          {update.isPending ? "保存中…" : "保存"}
+          {update.isPending ? t.common.saving : t.common.save}
         </Text>
       </Pressable>
     ),
-    [canSave, onSave, update.isPending],
+    [canSave, onSave, update.isPending, t],
   );
 
   return (
@@ -157,14 +159,14 @@ export default function EditIssue() {
           keyboardShouldPersistTaps="handled"
         >
           {!detail.data ? (
-            <Text className="text-sm text-muted-foreground">加载中…</Text>
+            <Text className="text-sm text-muted-foreground">{t.common.loading}</Text>
           ) : (
             <>
-              <Field label="标题">
+              <Field label={t.issues.titleFieldLabel}>
                 <TextInput
                   value={title}
                   onChangeText={setTitle}
-                  placeholder="任务标题"
+                  placeholder={t.issues.titlePlaceholder}
                   placeholderTextColor={MOBILE_PLACEHOLDER_COLOR}
                   className="text-base text-foreground bg-secondary/50 rounded-md px-3 py-2"
                   returnKeyType="next"
@@ -172,7 +174,7 @@ export default function EditIssue() {
                 />
               </Field>
 
-              <Field label="描述">
+              <Field label={t.issues.descriptionFieldLabel}>
                 <DescriptionField
                   description={description}
                   disabled={update.isPending}

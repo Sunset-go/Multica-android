@@ -118,3 +118,11 @@ export const NAV_THEME: Record<"light" | "dark", Theme> = {
     },
   },
 };
+
+/**
+ * Returns the NAV_THEME variant for the current color scheme.
+ * Used by app/_layout.tsx when mounting ThemeProvider.
+ */
+export function getNavTheme(colorScheme: "light" | "dark"): Theme {
+  return NAV_THEME[colorScheme];
+}
