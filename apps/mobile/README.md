@@ -1,104 +1,104 @@
 # Multica Mobile (iOS)
 
-Expo + React Native iOS client for Multica. Independent from web/desktop — shares only types from `@multica/core/`. See [`CLAUDE.md`](./CLAUDE.md) for the locked tech-stack baseline and import rules.
+Multica 的 Expo + React Native iOS 客户端。与 web/desktop 相互独立，仅通过 `@multica/core/` 共享类型。锁定的技术栈基线和 import 规则见 [`CLAUDE.md`](./CLAUDE.md)。
 
-## Just want to use it on your phone? (no development)
+## 只想在手机上用？（不做开发）
 
-Multica isn't on the App Store yet — until that changes, anyone who wants it on their iPhone builds from source. One command:
+Multica 目前还没有上架 App Store——在上架之前，任何想在 iPhone 上使用它的人都得从源码构建。一条命令：
 
 ```bash
 pnpm ios:mobile:device:prod:release
 ```
 
-This connects to the same backend as `multica.ai`, so your existing account just works.
+它连接的是和 `multica.ai` 相同的后端，所以已有账号可直接登录。
 
-**Prerequisites**: Mac with Xcode, a free Apple ID added under Xcode → Settings → Accounts, iPhone connected via USB with [Developer Mode enabled](https://docs.expo.dev/guides/ios-developer-mode/). Walk through Expo's [Set up your environment](https://docs.expo.dev/get-started/set-up-your-environment/) (pick **Development build → iOS Device**) if any of that is missing.
+**前置条件**：装有 Xcode 的 Mac、Xcode → Settings → Accounts 下已加入的免费 Apple ID、通过 USB 连接的 iPhone 并开启[开发者模式](https://docs.expo.dev/guides/ios-developer-mode/)。以上任何一项缺失，都可以跟着 Expo 的 [Set up your environment](https://docs.expo.dev/get-started/set-up-your-environment/) 走一遍（选择 **Development build → iOS Device**）。
 
-Xcode signs the build with the "Personal Team" your Apple ID automatically owns — created silently the first time you signed into Xcode, no setup needed. The first build downloads CocoaPods + compiles React Native from source — expect 10–20 minutes. Subsequent builds reuse Xcode's cache.
+Xcode 会使用你的 Apple ID 自动拥有的 "Personal Team" 签名——首次登录 Xcode 时会静默创建，无需额外配置。首次构建会下载 CocoaPods + 从源码编译 React Native，预计 10–20 分钟；后续构建会复用 Xcode 的缓存。
 
-**If Xcode rejects signing with "No matching provisioning profiles found"** — rare, happens if someone has claimed the default bundle id `ai.multica.mobile` on Apple's developer portal. Pick any reverse-domain you own and re-run:
+**如果 Xcode 报 "No matching provisioning profiles found" 拒绝签名**——比较少见，通常是因为有人已经在 Apple Developer Portal 上认领了默认 bundle id `ai.multica.mobile`。换成你自己的反向域名重新跑：
 
 ```bash
 export EXPO_BUNDLE_IDENTIFIER_PROD=com.yourname.multica
 pnpm ios:mobile:device:prod:release
 ```
 
-**7-day signing limit**: a free Apple ID signs builds for 7 days. After that, plug back into the Mac and re-run the command to re-sign. An Apple Developer Program account ($99/yr) extends this to 1 year.
+**7 天签名限制**：免费 Apple ID 签出的构建只能用 7 天。到期后把 iPhone 重新插上 Mac，重跑上面那条命令重新签名即可。Apple Developer Program 账号（$99/年）可以把这个期限延长到 1 年。
 
-Everything below is for app developers — you can ignore the rest if you only wanted a personal install.
+下面这些内容都是给应用开发者看的——如果你只是想装到自己的手机上，可以跳过剩下全部。
 
-## Scripts
+## 脚本一览
 
-| Command | What it does | Backend |
+| 命令 | 说明 | 后端 |
 |---|---|---|
-| `pnpm dev:mobile` | Metro only (reuse existing install) | local (`.env.development.local`) |
-| `pnpm dev:mobile:staging` | Metro only (reuse existing install) | staging (`.env.staging`) |
-| `pnpm dev:mobile:prod` | Metro only (reuse existing install) | production (`.env.production`) |
-| `pnpm ios:mobile` | Full rebuild + install on **iOS Simulator**, Debug | local |
-| `pnpm ios:mobile:staging` | Full rebuild + install on **iOS Simulator**, Debug | staging |
-| `pnpm ios:mobile:prod` | Full rebuild + install on **iOS Simulator**, Debug | production |
-| `pnpm ios:mobile:device` | Full rebuild + install on **USB iPhone**, Debug | local |
-| `pnpm ios:mobile:device:staging` | Full rebuild + install on **USB iPhone**, Debug | staging |
-| `pnpm ios:mobile:device:staging:release` | Full rebuild + install on **USB iPhone**, Release (standalone) | staging |
-| `pnpm ios:mobile:device:prod` | Full rebuild + install on **USB iPhone**, Debug | production |
-| `pnpm ios:mobile:device:prod:release` | Full rebuild + install on **USB iPhone**, Release (standalone) | production |
+| `pnpm dev:mobile` | 只启动 Metro（复用已装好的构建） | local（`.env.development.local`） |
+| `pnpm dev:mobile:staging` | 只启动 Metro（复用已装好的构建） | staging（`.env.staging`） |
+| `pnpm dev:mobile:prod` | 只启动 Metro（复用已装好的构建） | production（`.env.production`） |
+| `pnpm ios:mobile` | **iOS 模拟器** 完整重建 + 安装，Debug | local |
+| `pnpm ios:mobile:staging` | **iOS 模拟器** 完整重建 + 安装，Debug | staging |
+| `pnpm ios:mobile:prod` | **iOS 模拟器** 完整重建 + 安装，Debug | production |
+| `pnpm ios:mobile:device` | **USB iPhone** 完整重建 + 安装，Debug | local |
+| `pnpm ios:mobile:device:staging` | **USB iPhone** 完整重建 + 安装，Debug | staging |
+| `pnpm ios:mobile:device:staging:release` | **USB iPhone** 完整重建 + 安装，Release（独立） | staging |
+| `pnpm ios:mobile:device:prod` | **USB iPhone** 完整重建 + 安装，Debug | production |
+| `pnpm ios:mobile:device:prod:release` | **USB iPhone** 完整重建 + 安装，Release（独立） | production |
 
-`dev:*` runs Metro only — assumes the matching variant is already installed. `ios:mobile*` does a full native rebuild + install.
+`dev:*` 只启动 Metro——默认对应的变体已经装到设备上了。`ios:mobile*` 会做完整的原生重建 + 安装。
 
-Bundle id and display name switch on `APP_ENV` (see `app.config.ts`), so Dev / Staging / Production variants can coexist on the same device or simulator.
+Bundle id 和显示名随 `APP_ENV` 切换（见 `app.config.ts`），所以 Dev / Staging / Production 三个变体可以在同一台设备或模拟器上共存。
 
-## First-time setup
+## 首次配置
 
-`.env.staging` is committed (public staging URL). `.env.development.local` is gitignored — copy the template once:
+`.env.staging` 已提交（公开 staging URL）。`.env.development.local` 已被 gitignore，复制一次模板即可：
 
 ```bash
 cp apps/mobile/.env.example apps/mobile/.env.development.local
-# then edit EXPO_PUBLIC_API_URL inside it to your Mac's LAN IP, e.g. http://192.168.1.42:8080
+# 然后把里面的 EXPO_PUBLIC_API_URL 改成你 Mac 的局域网 IP，例如 http://192.168.1.42:8080
 ```
 
-If your Apple ID isn't on the Multica Apple Developer team yet, also uncomment and set `EXPO_BUNDLE_IDENTIFIER_DEV` to a reverse-domain you own (e.g. `com.yourname.multica.dev`). This **only** overrides the dev variant — staging / production bundle ids are intentionally not overridable so variants can coexist.
+如果你的 Apple ID 还没加入 Multica 的 Apple Developer 团队，再把 `EXPO_BUNDLE_IDENTIFIER_DEV` 取消注释并设成你自己的反向域名（例如 `com.yourname.multica.dev`）。这个变量**只**覆盖 dev 变体——staging / production 的 bundle id 刻意不做覆盖，以保证三个变体能共存。
 
-## Build it onto your iPhone
+## 构建到 iPhone 上
 
-Two paths, depending on what you want to do:
+根据你的使用场景，有两条路径：
 
-### Day-to-day development (Mac in front of you)
+### 日常开发（Mac 在手边）
 
 ```bash
 pnpm ios:mobile:device:staging
 ```
 
-Produces a **Debug build** with `expo-dev-launcher` embedded. Every launch the app probes Metro on your Mac and pulls fresh JS — perfect for hot-reload, painful when the Mac is asleep or you're on a different WiFi.
+产物是 **Debug 构建**，内嵌 `expo-dev-launcher`。每次启动 App 都会探测 Mac 上的 Metro 并拉最新的 JS——热重载很方便，但 Mac 睡眠了或者换了 WiFi 就会很难受。
 
-### Standalone / "just use it" (walk away from the Mac)
+### 独立使用 / "装好就走"（不用一直在 Mac 旁边）
 
 ```bash
 pnpm ios:mobile:device:staging:release
 ```
 
-Produces a **Release build**. No `expo-dev-launcher`, no Metro probe, no "Downloading…" screen. Splash → app, exactly like an App Store install. Trade-off: every JS change requires re-running this command.
+产物是 **Release 构建**。没有 `expo-dev-launcher`，不会探测 Metro，没有 "Downloading…" 加载页——Splash 直入应用，跟 App Store 装的效果一样。代价是每次 JS 变更都得重跑这条命令。
 
-Both paths share the same prerequisites: Mac with Xcode, free Apple ID added under Xcode → Settings → Accounts, iPhone connected via USB with Developer Mode enabled. Follow Expo's [Set up your environment](https://docs.expo.dev/get-started/set-up-your-environment/) — pick **Development build → iOS Device** — if any of that is missing.
+两条路径的前置条件相同：装有 Xcode 的 Mac、Xcode → Settings → Accounts 下已加入的免费 Apple ID、通过 USB 连接并开启开发者模式的 iPhone。缺任何一项都可以跟着 Expo 的 [Set up your environment](https://docs.expo.dev/get-started/set-up-your-environment/) 走一遍（选 **Development build → iOS Device**）。
 
-First build of either variant downloads CocoaPods + compiles React Native from source — expect 10-20 minutes. Subsequent builds reuse Xcode's DerivedData cache.
+任一变体的首次构建都会下载 CocoaPods + 从源码编译 React Native，预计 10–20 分钟；后续构建会复用 Xcode 的 DerivedData 缓存。
 
-## Try it in the iOS Simulator (no iPhone needed)
+## 在 iOS 模拟器上体验（不需要 iPhone）
 
 ```bash
 pnpm ios:mobile:staging
 ```
 
-Boots the simulator, builds, installs the dev-client. Faster to iterate than a device build because no signing / provisioning step. Same `dev:mobile:staging` Metro flow afterward.
+会启动模拟器、构建并安装 dev-client。因为没有签名 / 描述文件这一步，比真机构建更快，迭代效率更高。之后走相同的 `dev:mobile:staging` Metro 流程即可。
 
-## 7-day signing limit (device only)
+## 7 天签名限制（仅真机）
 
-A free Apple ID signs builds for **7 days only**, Debug and Release both. After that the app refuses to launch on the iPhone. Plug back into the Mac and re-run the corresponding `ios:mobile:device*` script to re-sign. Simulator builds are unaffected. The only workaround for the device limit is an Apple Developer Program account ($99/yr), which extends to 1 year.
+免费 Apple ID 签出的构建——Debug 和 Release 都一样——**只能用 7 天**。到期后 App 会在 iPhone 上拒绝启动。把 iPhone 重新插上 Mac，重跑对应的 `ios:mobile:device*` 脚本重新签名即可。模拟器构建不受影响。唯一能突破真机期限的办法是买 Apple Developer Program 账号（$99/年），可以延长到 1 年。
 
-## Pointing at a different backend
+## 指向不同的后端
 
-Edit `EXPO_PUBLIC_API_URL` in `.env.staging`, `.env.production`, or `.env.development.local` (whichever variant you're running). Then:
+修改 `.env.staging`、`.env.production` 或 `.env.development.local`（你正在跑的那个变体）里的 `EXPO_PUBLIC_API_URL`。然后：
 
-- For an installed **Debug build**: restart Metro (`pnpm dev:mobile:staging`) so the next JS bundle picks up the new value.
-- For an installed **Release build**: re-run the `ios:mobile:device:staging:release` command — the value is baked into the embedded bundle at build time.
+- 已安装的 **Debug 构建**：重启 Metro（`pnpm dev:mobile:staging`），让下一次 JS 包带上新的值。
+- 已安装的 **Release 构建**：重跑 `ios:mobile:device:staging:release`——这个值在构建时就被打包进了内嵌 bundle。
 
-For local backend testing, use your Mac's LAN IP (`ipconfig getifaddr en0`), not `localhost`.
+测试本地后端时，请使用你 Mac 的局域网 IP（`ipconfig getifaddr en0`），而不是 `localhost`。
