@@ -37,7 +37,10 @@ const builtApk = join(
   "release",
   "app-release.apk",
 );
-const dest = join(distDir, `multica-app-v${version}.apk`);
+// SUFFIX lets CI produce sibling variants (e.g. "-arm64" for a single-ABI
+// build next to the default universal APK) without colliding on filename.
+const suffix = process.env.SUFFIX ?? "";
+const dest = join(distDir, `multica-app-v${version}${suffix}.apk`);
 
 if (!existsSync(builtApk)) {
   console.error(

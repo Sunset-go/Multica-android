@@ -28,6 +28,18 @@ permissions:
 jobs:
   build-release:
     runs-on: ubuntu-latest
+    strategy:
+      # 两个变体并行构建，分别上传到同一个 Release：
+      #   - universal (默认，包含全部 ABI，~110 MB)  —— 兼容老设备
+      #   - arm64-v8a-only (~30 MB)                  —— 现代手机首选
+      # 两者文件名不同，softprops/action-gh-release 会各追加一个 asset，不冲突。
+      fail-fast: false
+      matrix:
+        include:
+          - arch: universal
+            suffix: ""
+          - arch: arm64-v8a
+            suffix: "-arm64"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -75,11 +87,31 @@ jobs:
       - name: Set version from tag
         run: node apps/mobile/scripts/bump-android-version.mjs --set "${GITHUB_REF_NAME#v}"
 
+      # 跨 run 缓存 Gradle 依赖，避免每次 matrix job 都从网络拉 AGP / RN / NDK。
+      - name: Cache gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('apps/mobile/android/**/build.gradle') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
       - name: Build release APK
         working-directory: apps/mobile/android
-        run: ./gradlew assembleRelease
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: |
+          if [ "$ARCH" = "universal" ]; then
+            ./gradlew assembleRelease
+          else
+            ./gradlew assembleRelease -PreactNativeArchitectures=$ARCH
+          fi
 
       - name: Copy versioned APK
+        env:
+          SUFFIX: ${{ matrix.suffix }}
         run: node apps/mobile/scripts/copy-versioned-apk.mjs
 
       - name: Upload APK to Release
