@@ -51,6 +51,10 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # `tools` 包在 Google 的仓库里已被移除；显式只装 platform-tools，
+          # 避免 action 默认的 `sdkmanager tools` 命令 404 导致整个 step 失败。
+          packages: platform-tools
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
