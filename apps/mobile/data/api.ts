@@ -28,6 +28,7 @@ import type {
   InboxItem,
   Issue,
   IssueLabelsResponse,
+  RuntimeModelListRequest,
   Label,
   IssueReaction,
   ListIssuesParams,
@@ -108,6 +109,8 @@ import {
   PinnedItemSchema,
   ProjectSchema,
   RuntimeListSchema,
+  RuntimeModelListRequestSchema,
+  MALFORMED_RUNTIME_MODEL_LIST_REQUEST,
   SearchIssuesResponseSchema,
   SearchProjectsResponseSchema,
   SendChatMessageResponseSchema,
@@ -529,6 +532,44 @@ class ApiClient {
     return parseWithFallback(raw, RuntimeListSchema, EMPTY_RUNTIME_LIST, {
       endpoint: "listRuntimes",
     });
+  }
+
+  // Runtime model discovery — initiates a list-models request against the
+  // daemon (POST) and polls the result (GET). Mirrors the core API client's
+  // initiateListModels / getListModelsResult at packages/core/api/client.ts:1894.
+  // Used by the agent edit page's cascading picker: runtime → model →
+  // thinking_level → service_tier. The polling logic lives in the query
+  // hook (data/queries/runtimes.ts resolveRuntimeModels).
+  async initiateListModels(runtimeId: string): Promise<RuntimeModelListRequest> {
+    const raw = await this.fetch<unknown>(
+      `/api/runtimes/${runtimeId}/models`,
+      { method: "POST" },
+    );
+    return parseWithFallback<RuntimeModelListRequest>(
+      raw,
+      RuntimeModelListRequestSchema,
+      { ...MALFORMED_RUNTIME_MODEL_LIST_REQUEST, runtime_id: runtimeId },
+      { endpoint: "POST /api/runtimes/{id}/models" },
+    );
+  }
+
+  async getListModelsResult(
+    runtimeId: string,
+    requestId: string,
+  ): Promise<RuntimeModelListRequest> {
+    const raw = await this.fetch<unknown>(
+      `/api/runtimes/${runtimeId}/models/${requestId}`,
+    );
+    return parseWithFallback<RuntimeModelListRequest>(
+      raw,
+      RuntimeModelListRequestSchema,
+      {
+        ...MALFORMED_RUNTIME_MODEL_LIST_REQUEST,
+        id: requestId,
+        runtime_id: runtimeId,
+      },
+      { endpoint: "GET /api/runtimes/{id}/models/{requestId}" },
+    );
   }
 
   // Workspace-wide active agent tasks + each agent's most recent terminal —

@@ -33,6 +33,9 @@ import type {
   SearchIssuesResponse,
   SearchProjectsResponse,
   SendChatMessageResponse,
+  RuntimeModel,
+  RuntimeModelListRequest,
+  RuntimeModelsResult,
   Squad,
   TaskMessagePayload,
   User,
@@ -631,6 +634,8 @@ export const AgentSchema: z.ZodType<Agent> = z.object({
   status: z.string().catch("active") as unknown as z.ZodType<Agent["status"]>,
   max_concurrent_tasks: z.number().default(1),
   model: z.string().default(""),
+  thinking_level: z.string().optional(),
+  service_tier: z.string().optional(),
   owner_id: z.string().nullable().default(null),
   skills: z.array(z.unknown()).default([]) as unknown as z.ZodType<
     Agent["skills"]
@@ -643,6 +648,72 @@ export const AgentSchema: z.ZodType<Agent> = z.object({
 
 export const AgentListSchema = z.array(AgentSchema).default([]);
 export const EMPTY_AGENT_LIST: Agent[] = [];
+
+// --- Runtime model discovery schemas ---
+// Mobile mirrors the shape from packages/core/types/agent.ts so the
+// cascading picker (runtime → model → thinking_level → service_tier)
+// can parse the discovery response safely. All fields default so an
+// unparseable record degrades to an explicit "failed" request rather
+// than crashing the picker.
+const RuntimeModelThinkingLevelSchema = z.object({
+  value: z.string().default(""),
+  label: z.string().default(""),
+  description: z.string().optional(),
+});
+
+const RuntimeModelThinkingSchema = z.object({
+  supported_levels: z.array(RuntimeModelThinkingLevelSchema).default([]),
+  default_level: z.string().optional(),
+});
+
+const RuntimeModelServiceTierSchema = z.object({
+  id: z.string().default(""),
+  name: z.string().default(""),
+  description: z.string().optional(),
+});
+
+export const RuntimeModelSchema: z.ZodType<RuntimeModel> = z.object({
+  id: z.string().default(""),
+  label: z.string().default(""),
+  provider: z.string().optional(),
+  default: z.boolean().optional(),
+  thinking: RuntimeModelThinkingSchema.optional(),
+  service_tiers: z.array(RuntimeModelServiceTierSchema).optional(),
+}).loose();
+
+const MALFORMED_RUNTIME_MODEL_LIST_REQUEST: RuntimeModelListRequest = {
+  id: "",
+  runtime_id: "",
+  status: "failed",
+  models: [],
+  supported: true,
+  error: "schema validation failed",
+  created_at: "",
+  updated_at: "",
+};
+
+export const RuntimeModelListRequestSchema: z.ZodType<RuntimeModelListRequest> =
+  z.object({
+    id: z.string().default(""),
+    runtime_id: z.string().default(""),
+    status: z
+      .enum(["pending", "running", "completed", "failed", "timeout"])
+      .catch("failed"),
+    models: z.array(RuntimeModelSchema).default([]),
+    supported: z.boolean().catch(true),
+    error: z.string().optional(),
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    cached: z.boolean().optional(),
+    cached_at: z.string().optional(),
+  }).loose();
+
+export const EMPTY_RUNTIME_MODELS_RESULT: RuntimeModelsResult = {
+  models: [],
+  supported: true,
+};
+
+export { MALFORMED_RUNTIME_MODEL_LIST_REQUEST };
 
 // Runtime device — the daemon (local or cloud) an agent binds to. Mobile reads
 // it for the presence dot: `status` + `last_seen_at` drive the three-state
