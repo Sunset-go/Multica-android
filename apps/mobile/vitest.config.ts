@@ -23,6 +23,7 @@ export default defineConfig({
     environment: "node",
     globals: true,
     include: ["lib/**/*.test.ts", "data/**/*.test.ts"],
+    setupFiles: ["./vitest.setup.ts"],
     passWithNoTests: true,
   },
 });

@@ -1,4 +1,17 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+
+// Mock translations so header titles are stable regardless of default locale.
+vi.mock("@/lib/i18n/use-translation", () => ({
+  getT: () => ({
+    search: {
+      recent: "Recent",
+      projects: "Projects",
+      issues: "Issues",
+      cancelled: "Cancelled",
+    },
+  }),
+}));
+
 import type {
   Issue,
   SearchIssueResult,
