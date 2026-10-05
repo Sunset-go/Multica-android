@@ -279,6 +279,9 @@ export interface TranslationDict {
     pickModel: string;
     pickThinkingLevel: string;
     pickServiceTier: string;
+    runtimeSearchPlaceholder: string;
+    modelSearchPlaceholder: string;
+    noOptions: string;
     loadingModels: string;
     modelsUnavailable: string;
     permissions: string;
@@ -915,6 +918,9 @@ const zh: TranslationDict = {
     pickModel: "选择模型",
     pickThinkingLevel: "选择思考深度",
     pickServiceTier: "选择服务层级",
+    runtimeSearchPlaceholder: "搜索运行时…",
+    modelSearchPlaceholder: "搜索模型…",
+    noOptions: "暂无选项",
     loadingModels: "加载模型中…",
     modelsUnavailable: "无法获取模型列表",
     permissions: "权限",
@@ -1655,6 +1661,9 @@ const en: TranslationDict = {
     pickModel: "Pick Model",
     pickThinkingLevel: "Pick Thinking Level",
     pickServiceTier: "Pick Service Tier",
+    runtimeSearchPlaceholder: "Search runtimes…",
+    modelSearchPlaceholder: "Search models…",
+    noOptions: "No options available",
     loadingModels: "Loading models…",
     modelsUnavailable: "Unable to load models",
     permissions: "Permissions",

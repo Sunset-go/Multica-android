@@ -33,12 +33,12 @@ import { Ionicons } from "@expo/vector-icons";
 import type {
   AgentPermissionMode,
   MemberWithUser,
-  RuntimeDevice,
   RuntimeModel,
 } from "@multica/core/types";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { SheetPickerModal } from "@/components/ui/sheet-picker-modal";
 import { useT } from "@/lib/i18n/use-translation";
 import { useWorkspaceStore } from "@/data/workspace-store";
 import { useAuthStore } from "@/data/auth-store";
@@ -78,6 +78,11 @@ export default function AgentEditPage() {
   const [permissionMode, setPermissionMode] = useState<AgentPermissionMode>("private");
   const [selectedMemberIds, setSelectedMemberIds] = useState<Set<string>>(new Set());
   const [memberPickerOpen, setMemberPickerOpen] = useState(false);
+  // Which cascading runtime-config picker sheet is currently open.
+  // Kept as a single enum so only one sheet can be visible at a time.
+  const [picker, setPicker] = useState<
+    "runtime" | "model" | "thinking" | "tier" | null
+  >(null);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -372,7 +377,7 @@ export default function AgentEditPage() {
             runtimes.find((r) => r.id === runtimeId)?.name ||
             t.agentEdit.noRuntimeSelected
           }
-          onPress={() => showRuntimePicker(runtimes, onRuntimeChange, t)}
+          onPress={() => setPicker("runtime")}
           mutedFg={mutedFg}
         />
         <Separator />
@@ -385,9 +390,7 @@ export default function AgentEditPage() {
                 models.find((m) => m.id === modelId)?.label ||
                 t.agentEdit.noModelSelected
               }
-              onPress={() =>
-                showModelPicker(models, onModelChange, modelsQ.isLoading, t)
-              }
+              onPress={() => setPicker("model")}
               mutedFg={mutedFg}
               loading={modelsQ.isLoading}
             />
@@ -403,9 +406,7 @@ export default function AgentEditPage() {
                 thinkingLevels.find((l) => l.value === thinkingLevel)?.label ||
                 t.agentEdit.noThinkingLevel
               }
-              onPress={() =>
-                showThinkingPicker(thinkingLevels, setThinkingLevel, t)
-              }
+              onPress={() => setPicker("thinking")}
               mutedFg={mutedFg}
             />
             <Separator />
@@ -420,9 +421,7 @@ export default function AgentEditPage() {
                 serviceTiers.find((s) => s.id === serviceTier)?.name ||
                 t.agentEdit.noServiceTier
               }
-              onPress={() =>
-                showServiceTierPicker(serviceTiers, setServiceTier, t)
-              }
+              onPress={() => setPicker("tier")}
               mutedFg={mutedFg}
             />
             <Separator />
@@ -519,6 +518,69 @@ export default function AgentEditPage() {
         onClose={() => setMemberPickerOpen(false)}
         mutedFg={mutedFg}
         t={t}
+      />
+
+      {/* Runtime / model / thinking / tier — cascading single-select
+          bottom sheets, replacing the previous Alert.alert pickers. */}
+      <SheetPickerModal
+        visible={picker === "runtime"}
+        title={t.agentEdit.pickRuntime}
+        items={runtimes.map((r) => ({
+          id: r.id,
+          label: r.name || r.id,
+          description: r.provider,
+          trailing: (
+            <View
+              className="size-2 rounded-full"
+              style={{
+                backgroundColor: r.status === "online" ? "#22c55e" : mutedFg,
+                opacity: r.status === "offline" ? 0.4 : 1,
+              }}
+            />
+          ),
+        }))}
+        selectedId={runtimeId}
+        onSelect={onRuntimeChange}
+        onClose={() => setPicker(null)}
+        loading={runtimesQ.isLoading}
+        emptyMessage={t.agentEdit.noOptions}
+        searchPlaceholder={t.agentEdit.runtimeSearchPlaceholder}
+      />
+
+      <SheetPickerModal
+        visible={picker === "model"}
+        title={t.agentEdit.pickModel}
+        items={models.map((m) => ({
+          id: m.id,
+          label: m.label || m.id,
+          description: m.provider,
+        }))}
+        selectedId={modelId}
+        onSelect={onModelChange}
+        onClose={() => setPicker(null)}
+        loading={modelsQ.isLoading}
+        emptyMessage={t.agentEdit.noOptions}
+        searchPlaceholder={t.agentEdit.modelSearchPlaceholder}
+      />
+
+      <SheetPickerModal
+        visible={picker === "thinking"}
+        title={t.agentEdit.pickThinkingLevel}
+        items={thinkingLevels.map((l) => ({ id: l.value, label: l.label }))}
+        selectedId={thinkingLevel}
+        onSelect={setThinkingLevel}
+        onClose={() => setPicker(null)}
+        emptyMessage={t.agentEdit.noOptions}
+      />
+
+      <SheetPickerModal
+        visible={picker === "tier"}
+        title={t.agentEdit.pickServiceTier}
+        items={serviceTiers.map((s) => ({ id: s.id, label: s.name }))}
+        selectedId={serviceTier}
+        onSelect={setServiceTier}
+        onClose={() => setPicker(null)}
+        emptyMessage={t.agentEdit.noOptions}
       />
 
       {/* Section 4: Skills */}
@@ -817,78 +879,6 @@ function EnvEditor({
       </Pressable>
     </View>
   );
-}
-
-// --- Inline picker helpers (ActionSheet-style Alert) ---
-// Mobile formSheet pickers would be ideal, but for this first iteration
-// we use Alert.alert with buttons — simpler and avoids route plumbing.
-// The formSheet pattern can be promoted later for better UX.
-
-type T = ReturnType<typeof useT>;
-
-function showRuntimePicker(
-  runtimes: RuntimeDevice[],
-  onChange: (id: string) => void,
-  t: T,
-) {
-  const buttons = runtimes.map((r) => ({
-    text: r.name || r.id,
-    onPress: () => onChange(r.id),
-  }));
-  Alert.alert(t.agentEdit.pickRuntime, undefined, [
-    ...buttons,
-    { text: t.common.cancel, style: "cancel" as const },
-  ]);
-}
-
-function showModelPicker(
-  models: RuntimeModel[],
-  onChange: (id: string) => void,
-  loading: boolean,
-  t: T,
-) {
-  if (loading || models.length === 0) {
-    Alert.alert("", t.agentEdit.modelsUnavailable);
-    return;
-  }
-  const buttons = models.map((m) => ({
-    text: m.label || m.id,
-    onPress: () => onChange(m.id),
-  }));
-  Alert.alert(t.agentEdit.pickModel, undefined, [
-    ...buttons,
-    { text: t.common.cancel, style: "cancel" as const },
-  ]);
-}
-
-function showThinkingPicker(
-  levels: { value: string; label: string }[],
-  onChange: (value: string) => void,
-  t: T,
-) {
-  const buttons = levels.map((l) => ({
-    text: l.label,
-    onPress: () => onChange(l.value),
-  }));
-  Alert.alert(t.agentEdit.pickThinkingLevel, undefined, [
-    ...buttons,
-    { text: t.common.cancel, style: "cancel" as const },
-  ]);
-}
-
-function showServiceTierPicker(
-  tiers: { id: string; name: string }[],
-  onChange: (id: string) => void,
-  t: T,
-) {
-  const buttons = tiers.map((s) => ({
-    text: s.name,
-    onPress: () => onChange(s.id),
-  }));
-  Alert.alert(t.agentEdit.pickServiceTier, undefined, [
-    ...buttons,
-    { text: t.common.cancel, style: "cancel" as const },
-  ]);
 }
 
 // --- Member picker modal — for selecting specific members in permission scope ---
