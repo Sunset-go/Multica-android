@@ -17,12 +17,29 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type {
   Agent,
   AgentEnvResponse,
+  CreateAgentRequest,
   UpdateAgentEnvRequest,
   UpdateAgentRequest,
 } from "@multica/core/types";
 import { api } from "@/data/api";
 import { agentKeys } from "@/data/queries/agents";
 import { useWorkspaceStore } from "@/data/workspace-store";
+
+export function useCreateAgent() {
+  const qc = useQueryClient();
+  const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
+
+  return useMutation({
+    mutationFn: (data: CreateAgentRequest) => api.createAgent(data),
+    onSuccess: (created: Agent) => {
+      // Seed the detail cache so a list → detail hand-off can render
+      // immediately; then invalidate the list so the new row shows up
+      // without a full refetch.
+      qc.setQueryData(agentKeys.detail(wsId, created.id), created);
+      qc.invalidateQueries({ queryKey: agentKeys.list(wsId) });
+    },
+  });
+}
 
 export function useUpdateAgent(agentId: string) {
   const qc = useQueryClient();

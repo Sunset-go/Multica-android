@@ -22,6 +22,7 @@ import type {
   ChatPendingTask,
   ChatSession,
   Comment,
+  CreateAgentRequest,
   CreateIssueRequest,
   CreateLabelRequest,
   CreateProjectRequest,
@@ -557,6 +558,20 @@ class ApiClient {
       EMPTY_AGENT_FALLBACK,
       { method: "PUT", body: JSON.stringify(data) },
       { endpoint: "PUT /api/agents/{id}" },
+    );
+  }
+
+  // Mirrors `createAgent` at packages/core/api/client.ts:1187.
+  // `runtime_id: ""` creates an unbound agent (the "Needs runtime" state
+  // surfaced on the list page) — consistent with the edit page, which sends
+  // `""` to unbind. Model / thinking / tier fall back to server defaults.
+  async createAgent(data: CreateAgentRequest): Promise<Agent> {
+    return this.fetchValidatedWith(
+      "/api/agents",
+      AgentSchema,
+      EMPTY_AGENT_FALLBACK,
+      { method: "POST", body: JSON.stringify(data) },
+      { endpoint: "POST /api/agents" },
     );
   }
 

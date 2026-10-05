@@ -241,6 +241,25 @@ export interface TranslationDict {
     loadError: string;
     agentNotFound: string;
   };
+  agentNew: {
+    title: string;
+    profile: string;
+    name: string;
+    namePlaceholder: string;
+    description: string;
+    descriptionPlaceholder: string;
+    runtime: string;
+    selectRuntime: string;
+    noRuntimeSelected: string;
+    runtimeEmpty: string;
+    runtimeLoadFailed: string;
+    runtimeHint: string;
+    instructions: string;
+    instructionsPlaceholder: string;
+    optional: string;
+    creating: string;
+    createFailed: string;
+  };
   inbox: {
     title: string;
     actions: string;
@@ -855,6 +874,25 @@ const zh: TranslationDict = {
     saveError: "保存失败",
     loadError: "加载失败",
     agentNotFound: "智能体不存在",
+  },
+  agentNew: {
+    title: "新建智能体",
+    profile: "资料",
+    name: "名称",
+    namePlaceholder: "智能体名称（必填）",
+    description: "描述",
+    descriptionPlaceholder: "一句话介绍这个智能体",
+    runtime: "运行时",
+    selectRuntime: "选择运行时",
+    noRuntimeSelected: "未选择",
+    runtimeEmpty: "此工作区还没有可用的运行时",
+    runtimeLoadFailed: "运行时加载失败，请稍后重试",
+    runtimeHint: "可选。不选择则以「未绑定」状态创建，可稍后在编辑页绑定。",
+    instructions: "指令",
+    instructionsPlaceholder: "智能体将遵循这里的指令；留空则使用工作区默认设置",
+    optional: "可选",
+    creating: "创建中…",
+    createFailed: "创建失败",
   },
   inbox: {
     title: "收件箱",
@@ -1510,6 +1548,25 @@ const en: TranslationDict = {
     saveError: "Failed to save",
     loadError: "Failed to load",
     agentNotFound: "Agent not found",
+  },
+  agentNew: {
+    title: "New Agent",
+    profile: "Profile",
+    name: "Name",
+    namePlaceholder: "Agent name (required)",
+    description: "Description",
+    descriptionPlaceholder: "Briefly describe this agent",
+    runtime: "Runtime",
+    selectRuntime: "Select runtime",
+    noRuntimeSelected: "Not selected",
+    runtimeEmpty: "No runtimes available in this workspace",
+    runtimeLoadFailed: "Failed to load runtimes. Please try again later",
+    runtimeHint: "Optional. Leave unselected to create the agent unbound; you can bind a runtime later from the edit page.",
+    instructions: "Instructions",
+    instructionsPlaceholder: "The agent will follow these instructions; leave empty to use workspace defaults",
+    optional: "Optional",
+    creating: "Creating…",
+    createFailed: "Failed to create",
   },
   inbox: {
     title: "Inbox",

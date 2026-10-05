@@ -1,11 +1,12 @@
 /**
- * Agent list page — workspace-wide list of agents, tap to edit.
+ * Agent list page — workspace-wide list of agents, tap to edit, `+` to create.
  *
  * Filters:
  *   - archived_at: null (hide archived agents)
  *   - runtime_bound: show a "Needs runtime" badge for unbound agents
  *
- * Pull-to-refresh + FlatList. Tapping a row pushes more/agents/[id].
+ * Pull-to-refresh + FlatList. Tapping a row pushes more/agents/[id];
+ * the `+` button / empty-state CTA push more/agents/new.
  */
 import { useCallback } from "react";
 import {
@@ -15,11 +16,14 @@ import {
   RefreshControl,
   View,
 } from "react-native";
-import { useFocusEffect, router } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect, router, Stack } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import type { Agent } from "@multica/core/types";
 import { isAgentRuntimeBound } from "@multica/core/agents";
 import { Text } from "@/components/ui/text";
+import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/ui/icon-button";
 import { Separator } from "@/components/ui/separator";
 import { useT } from "@/lib/i18n/use-translation";
 import { useWorkspaceStore } from "@/data/workspace-store";
@@ -47,55 +51,78 @@ export default function AgentsPage() {
     }, [refetch]),
   );
 
-  const agents = data?.filter((a) => !a.archived_at) ?? [];
+  const goCreate = useCallback(() => {
+    if (slug) router.push(`/${slug}/more/agents/new`);
+  }, [slug]);
 
-  if (isLoading) {
-    return (
-      <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator />
-      </View>
-    );
-  }
+  const headerRight = useCallback(() => {
+    return <PlusButton onPress={goCreate} />;
+  }, [goCreate]);
 
-  if (error && !data) {
-    return (
-      <View className="flex-1 items-center justify-center bg-background px-6">
-        <Text className="text-sm text-destructive text-center">
-          {t.agentEdit.loadError}
-        </Text>
-      </View>
-    );
-  }
-
-  if (agents.length === 0) {
-    return (
-      <View className="flex-1 items-center justify-center bg-background px-6">
-        <Text className="text-sm text-muted-foreground text-center">
-          {t.chat.noAgents}
-        </Text>
-      </View>
-    );
-  }
+  const agents = (data ?? []).filter((a) => !a.archived_at);
 
   return (
-    <FlatList
-      className="flex-1 bg-background"
-      data={agents}
-      keyExtractor={(item) => item.id}
-      refreshControl={
-        <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
-      }
-      ItemSeparatorComponent={() => <Separator />}
-      renderItem={({ item }) => (
-        <AgentRow
-          agent={item}
-          mutedFg={mutedFg}
-          onPress={() =>
-            router.push(`/${slug}/more/agents/${item.id}`)
+    <SafeAreaView className="flex-1 bg-background" edges={[]}>
+      <Stack.Screen options={{ headerRight }} />
+
+      {isLoading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator />
+        </View>
+      ) : error && !data ? (
+        <View className="flex-1 items-center justify-center px-6">
+          <Text className="text-sm text-destructive text-center">
+            {t.agentEdit.loadError}
+          </Text>
+        </View>
+      ) : agents.length === 0 ? (
+        <EmptyState onCreate={goCreate} />
+      ) : (
+        <FlatList
+          className="flex-1 bg-background"
+          data={agents}
+          keyExtractor={(item) => item.id}
+          refreshControl={
+            <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
           }
+          ItemSeparatorComponent={() => <Separator />}
+          renderItem={({ item }) => (
+            <AgentRow
+              agent={item}
+              mutedFg={mutedFg}
+              onPress={() =>
+                slug ? router.push(`/${slug}/more/agents/${item.id}`) : null
+              }
+            />
+          )}
         />
       )}
+    </SafeAreaView>
+  );
+}
+
+function PlusButton({ onPress }: { onPress: () => void }) {
+  const t = useT();
+  return (
+    <IconButton
+      name="add"
+      onPress={onPress}
+      accessibilityLabel={t.agentNew.title}
     />
+  );
+}
+
+function EmptyState({ onCreate }: { onCreate: () => void }) {
+  const t = useT();
+  return (
+    <View className="flex-1 items-center justify-center px-6 gap-4">
+      <Text className="text-base font-medium text-foreground">
+        {t.chat.noAgents}
+      </Text>
+      <Button variant="default" onPress={onCreate}>
+        <Text>{t.agentNew.title}</Text>
+      </Button>
+    </View>
   );
 }
 
