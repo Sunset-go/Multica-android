@@ -6,7 +6,8 @@
  *   2. Runtime Config — runtime/model/thinking_level/service_tier pickers
  *      (cascading: runtime switch clears model/thinking/tier; model switch
  *      clears thinking/tier) + max_concurrent_tasks stepper
- *   3. Permissions — read-only display of permission scope
+ *   3. Permissions — editable scope picker (private / workspace / specific
+ *      members) with a member checkbox modal; owner-only gate preserved
  *   4. Skills — searchable checkbox list; saved via setAgentSkills
  *   5. Environment Variables — key/value editor; owner/admin gated
  *
@@ -16,10 +17,11 @@
  * System agents (system_key present): instructions field is read-only with
  * a note "System agent instructions cannot be modified".
  */
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Modal,
   Pressable,
   ScrollView,
   TextInput,
@@ -28,17 +30,23 @@ import {
 import { useLocalSearchParams, router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
-import type { Agent, RuntimeDevice, RuntimeModel } from "@multica/core/types";
-import { isAgentRuntimeBound } from "@multica/core/agents";
+import type {
+  AgentPermissionMode,
+  MemberWithUser,
+  RuntimeDevice,
+  RuntimeModel,
+} from "@multica/core/types";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useT } from "@/lib/i18n/use-translation";
 import { useWorkspaceStore } from "@/data/workspace-store";
+import { useAuthStore } from "@/data/auth-store";
 import { THEME } from "@/lib/theme";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { agentDetailOptions, agentSkillsOptions, agentEnvOptions, workspaceSkillsOptions } from "@/data/queries/agents";
 import { runtimeListOptions, runtimeModelsOptions } from "@/data/queries/runtimes";
+import { memberListOptions } from "@/data/queries/members";
 import { useUpdateAgent, useUpdateAgentEnv, useSetAgentSkills } from "@/data/mutations/agents";
 import { cn } from "@/lib/utils";
 
@@ -64,6 +72,12 @@ export default function AgentEditPage() {
   const [serviceTier, setServiceTier] = useState("");
   const [skillIds, setSkillIds] = useState<Set<string>>(new Set());
   const [envMap, setEnvMap] = useState<Record<string, string>>({});
+  // Permission scope — "private" = owner only, "public_to" = shared.
+  // When "public_to" + selectedMemberIds empty → workspace-wide (no restriction).
+  // When "public_to" + selectedMemberIds non-empty → specific members.
+  const [permissionMode, setPermissionMode] = useState<AgentPermissionMode>("private");
+  const [selectedMemberIds, setSelectedMemberIds] = useState<Set<string>>(new Set());
+  const [memberPickerOpen, setMemberPickerOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -77,6 +91,16 @@ export default function AgentEditPage() {
       setModelId(agent.model);
       setThinkingLevel(agent.thinking_level ?? "");
       setServiceTier(agent.service_tier ?? "");
+      // Initialize permission state from agent data
+      setPermissionMode(agent.permission_mode);
+      if (agent.permission_mode === "public_to") {
+        const memberTargets = (agent.invocation_targets ?? []).filter(
+          (t) => t.target_type === "member",
+        );
+        setSelectedMemberIds(new Set(memberTargets.map((t) => t.target_id!)));
+      } else {
+        setSelectedMemberIds(new Set());
+      }
       setLoaded(true);
     }
   }, [agent, loaded]);
@@ -101,6 +125,10 @@ export default function AgentEditPage() {
   // Runtime list + model discovery for cascading picker
   const runtimesQ = useQuery(runtimeListOptions(wsId));
   const modelsQ = useQuery(runtimeModelsOptions(runtimeId || null));
+
+  // Members for the permission scope picker
+  const membersQ = useQuery(memberListOptions(wsId));
+  const currentUserId = useAuthStore((s) => s.user?.id ?? null);
 
   const updateAgent = useUpdateAgent(id);
   const updateEnv = useUpdateAgentEnv(id);
@@ -129,6 +157,42 @@ export default function AgentEditPage() {
     setServiceTier("");
   };
 
+  // Permission scope helpers
+  const isAgentOwner = agent ? agent.owner_id === currentUserId : false;
+  const canEditPermissions = !isSystemAgent && isAgentOwner;
+
+  // Display label for the current permission scope
+  const permissionScopeLabel = (() => {
+    if (permissionMode === "private") return t.agentEdit.scopePrivate;
+    if (selectedMemberIds.size === 0) return t.agentEdit.scopeWorkspace;
+    return `${t.agentEdit.scopeMembers} (${selectedMemberIds.size})`;
+  })();
+
+  const onPermissionModeChange = (mode: AgentPermissionMode) => {
+    setPermissionMode(mode);
+    if (mode === "private") {
+      setSelectedMemberIds(new Set());
+    } else if (mode === "public_to") {
+      // "public_to" with no members selected = workspace-wide
+      // Keep existing selectedMemberIds if any, otherwise empty = workspace
+    }
+  };
+
+  const openMemberPicker = () => {
+    setPermissionMode("public_to");
+    setMemberPickerOpen(true);
+  };
+
+  const handlePermissionPicker = () => {
+    if (!canEditPermissions) return;
+    Alert.alert(t.agentEdit.selectPermissionScope, undefined, [
+      { text: t.agentEdit.scopePrivate, onPress: () => onPermissionModeChange("private") },
+      { text: t.agentEdit.scopeWorkspace, onPress: () => { onPermissionModeChange("public_to"); setSelectedMemberIds(new Set()); } },
+      { text: t.agentEdit.scopeMembers, onPress: openMemberPicker },
+      { text: t.common.cancel, style: "cancel" as const },
+    ]);
+  };
+
   const handleSave = async () => {
     if (!agent) return;
     let step = "updateAgent";
@@ -151,6 +215,29 @@ export default function AgentEditPage() {
       }
       if (serviceTier !== (agent.service_tier ?? "")) {
         patch.service_tier = serviceTier;
+      }
+      // Permission scope — diff against original
+      const origTargets = agent.invocation_targets ?? [];
+      const origMemberIds = new Set(
+        origTargets.filter((t) => t.target_type === "member").map((t) => t.target_id!),
+      );
+      const permissionChanged =
+        permissionMode !== agent.permission_mode ||
+        (permissionMode === "public_to" &&
+          selectedMemberIds.size !== origMemberIds.size &&
+          [...selectedMemberIds].some((m) => !origMemberIds.has(m)));
+      if (permissionChanged && canEditPermissions) {
+        patch.permission_mode = permissionMode;
+        if (permissionMode === "private") {
+          patch.invocation_targets = [];
+        } else if (selectedMemberIds.size === 0) {
+          patch.invocation_targets = [{ target_type: "workspace", target_id: null }];
+        } else {
+          patch.invocation_targets = [...selectedMemberIds].map((mid) => ({
+            target_type: "member" as const,
+            target_id: mid,
+          }));
+        }
       }
       if (Object.keys(patch).length > 0) {
         await updateAgent.mutateAsync(patch as never);
@@ -370,25 +457,69 @@ export default function AgentEditPage() {
         </View>
       </SectionGroup>
 
-      {/* Section 3: Permissions (read-only) */}
+      {/* Section 3: Permissions */}
       <SectionGroup title={t.agentEdit.permissions}>
-        <View className="px-4 py-3.5 gap-1">
-          <Text className="text-base font-medium text-foreground">
-            {t.agentEdit.permissionScope}
-          </Text>
-          <Text className="text-sm text-muted-foreground">
-            {agent.permission_mode === "private"
-              ? t.agentEdit.scopePrivate
-              : t.agentEdit.scopeWorkspace}
-          </Text>
-        </View>
-        <Separator />
-        <View className="px-4 py-3">
-          <Text className="text-xs text-muted-foreground">
-            {t.agentEdit.permissionOwnerOnly}
-          </Text>
-        </View>
+        {canEditPermissions ? (
+          <>
+            <PickerRow
+              label={t.agentEdit.permissionScope}
+              value={permissionScopeLabel}
+              onPress={handlePermissionPicker}
+              mutedFg={mutedFg}
+            />
+            <Separator />
+            <View className="px-4 py-3">
+              <Text className="text-xs text-muted-foreground">
+                {permissionMode === "public_to" && selectedMemberIds.size > 0
+                  ? t.agentEdit.selectedCount(selectedMemberIds.size)
+                  : permissionMode === "public_to"
+                    ? t.agentEdit.scopeWorkspace
+                    : t.agentEdit.scopePrivate}
+              </Text>
+            </View>
+          </>
+        ) : (
+          <>
+            <View className="px-4 py-3.5 gap-1">
+              <Text className="text-base font-medium text-foreground">
+                {t.agentEdit.permissionScope}
+              </Text>
+              <Text className="text-sm text-muted-foreground">
+                {agent.permission_mode === "private"
+                  ? t.agentEdit.scopePrivate
+                  : t.agentEdit.scopeWorkspace}
+              </Text>
+            </View>
+            <Separator />
+            <View className="px-4 py-3">
+              <Text className="text-xs text-muted-foreground">
+                {isSystemAgent
+                  ? t.agentEdit.instructionsSystemNote
+                  : t.agentEdit.permissionOwnerOnly}
+              </Text>
+            </View>
+          </>
+        )}
       </SectionGroup>
+
+      {/* Member picker modal — for specific members mode */}
+      <MemberPickerModal
+        visible={memberPickerOpen}
+        members={membersQ.data ?? []}
+        loading={membersQ.isLoading}
+        selectedIds={selectedMemberIds}
+        onSelect={(ids) => {
+          setSelectedMemberIds(ids);
+          setPermissionMode("public_to");
+        }}
+        onClear={() => {
+          setSelectedMemberIds(new Set());
+          setPermissionMode("public_to");
+        }}
+        onClose={() => setMemberPickerOpen(false)}
+        mutedFg={mutedFg}
+        t={t}
+      />
 
       {/* Section 4: Skills */}
       <SkillsSection
@@ -758,4 +889,166 @@ function showServiceTierPicker(
     ...buttons,
     { text: t.common.cancel, style: "cancel" as const },
   ]);
+}
+
+// --- Member picker modal — for selecting specific members in permission scope ---
+
+function MemberPickerModal({
+  visible,
+  members,
+  loading,
+  selectedIds,
+  onSelect,
+  onClear,
+  onClose,
+  mutedFg,
+  t,
+}: {
+  visible: boolean;
+  members: MemberWithUser[];
+  loading: boolean;
+  selectedIds: Set<string>;
+  onSelect: (ids: Set<string>) => void;
+  onClear: () => void;
+  onClose: () => void;
+  mutedFg: string;
+  t: ReturnType<typeof useT>;
+}) {
+  const [search, setSearch] = useState("");
+
+  const filtered = useMemo(() => {
+    if (!search) return members;
+    const q = search.toLowerCase();
+    return members.filter(
+      (m) =>
+        m.name.toLowerCase().includes(q) ||
+        m.email.toLowerCase().includes(q),
+    );
+  }, [members, search]);
+
+  const toggle = (memberId: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(memberId)) next.delete(memberId);
+    else next.add(memberId);
+    onSelect(next);
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View className="flex-1 bg-black/40" />
+      <View className="flex-1" />
+      <View className="bg-background rounded-t-2xl max-h-[70%] flex flex-col">
+        {/* Header */}
+        <View className="flex-row items-center justify-between px-4 py-3">
+          <Text className="text-base font-semibold text-foreground">
+            {t.agentEdit.scopeMembers}
+          </Text>
+          <Pressable onPress={onClose} className="size-8 items-center justify-center">
+            <Ionicons name="close" size={20} color={mutedFg} />
+          </Pressable>
+        </View>
+        <Separator />
+
+        {/* Search */}
+        <View className="px-4 py-2">
+          <TextInput
+            value={search}
+            onChangeText={setSearch}
+            placeholder={t.agentEdit.membersSearchPlaceholder}
+            placeholderTextColor={mutedFg}
+            className="text-base text-foreground rounded-md border border-border bg-background px-3 py-2"
+            clearButtonMode="while-editing"
+          />
+        </View>
+
+        {/* Member list */}
+        {loading ? (
+          <View className="py-6 items-center">
+            <ActivityIndicator />
+          </View>
+        ) : filtered.length === 0 ? (
+          <View className="px-4 py-6 items-center">
+            <Text className="text-sm text-muted-foreground">
+              {t.agentEdit.noMembers}
+            </Text>
+          </View>
+        ) : (
+          <ScrollView className="flex-1" style={{ maxHeight: 320 }}>
+            {filtered.map((member, idx) => (
+              <View key={member.id}>
+                <Pressable
+                  onPress={() => toggle(member.id)}
+                  className="flex-row items-center px-4 py-3 active:bg-secondary gap-3"
+                >
+                  <View
+                    className={cn(
+                      "size-5 rounded border-2 items-center justify-center shrink-0",
+                      selectedIds.has(member.id)
+                        ? "bg-primary border-primary"
+                        : "border-border",
+                    )}
+                  >
+                    {selectedIds.has(member.id) ? (
+                      <Ionicons name="checkmark" size={14} color="white" />
+                    ) : null}
+                  </View>
+                  <View className="flex-1 min-w-0">
+                    <Text className="text-base text-foreground" numberOfLines={1}>
+                      {member.name}
+                    </Text>
+                    {member.email ? (
+                      <Text
+                        className="text-xs text-muted-foreground"
+                        numberOfLines={1}
+                      >
+                        {member.email}
+                      </Text>
+                    ) : null}
+                  </View>
+                </Pressable>
+                {idx < filtered.length - 1 ? <Separator /> : null}
+              </View>
+            ))}
+          </ScrollView>
+        )}
+
+        {/* Footer */}
+        <View className="flex-row items-center justify-between px-4 py-3 border-t border-border">
+          <Pressable
+            onPress={onClear}
+            className="flex-row items-center gap-1 py-1"
+            disabled={selectedIds.size === 0}
+          >
+            <Ionicons
+              name="close-circle-outline"
+              size={18}
+              color={selectedIds.size > 0 ? mutedFg : "#ccc"}
+            />
+            <Text
+              className={
+                selectedIds.size > 0
+                  ? "text-sm text-muted-foreground"
+                  : "text-sm text-muted-foreground opacity-40"
+              }
+            >
+              {t.common.clear}
+            </Text>
+          </Pressable>
+          <Text className="text-sm text-muted-foreground">
+            {selectedIds.size > 0
+              ? t.agentEdit.selectedCount(selectedIds.size)
+              : t.agentEdit.scopeWorkspace}
+          </Text>
+          <Button onPress={onClose}>
+            <Text className="text-sm text-primary">{t.common.confirm}</Text>
+          </Button>
+        </View>
+      </View>
+    </Modal>
+  );
 }

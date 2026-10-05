@@ -220,6 +220,10 @@ export interface TranslationDict {
     scopePrivate: string;
     scopeWorkspace: string;
     scopeMembers: string;
+    selectPermissionScope: string;
+    membersSearchPlaceholder: string;
+    noMembers: string;
+    selectedCount: (n: number) => string;
     permissionOwnerOnly: string;
     skills: string;
     skillsSearchPlaceholder: string;
@@ -831,6 +835,10 @@ const zh: TranslationDict = {
     scopePrivate: "私有",
     scopeWorkspace: "工作区",
     scopeMembers: "指定成员",
+    selectPermissionScope: "选择可见范围",
+    membersSearchPlaceholder: "搜索成员…",
+    noMembers: "暂无成员",
+    selectedCount: (n) => `已选择 ${n} 位成员`,
     permissionOwnerOnly: "权限修改仅所有者可执行",
     skills: "技能",
     skillsSearchPlaceholder: "搜索技能…",
@@ -1482,6 +1490,10 @@ const en: TranslationDict = {
     scopePrivate: "Private",
     scopeWorkspace: "Workspace",
     scopeMembers: "Specific Members",
+    selectPermissionScope: "Select Visibility",
+    membersSearchPlaceholder: "Search members…",
+    noMembers: "No members in this workspace",
+    selectedCount: (n) => `${n} member(s) selected`,
     permissionOwnerOnly: "Only the agent owner can change permissions",
     skills: "Skills",
     skillsSearchPlaceholder: "Search skills…",
