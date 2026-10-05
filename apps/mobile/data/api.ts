@@ -52,6 +52,12 @@ import type {
   SetAgentSkillsRequest,
   SkillSummary,
   Squad,
+  SquadMember,
+  CreateSquadRequest,
+  UpdateSquadRequest,
+  AddSquadMemberRequest,
+  RemoveSquadMemberRequest,
+  UpdateSquadMemberRoleRequest,
   NotificationPreferenceResponse,
   NotificationPreferences,
   TaskMessagePayload,
@@ -108,6 +114,9 @@ import {
   EMPTY_SEARCH_PROJECTS_RESPONSE,
   EMPTY_SKILL_LIST,
   EMPTY_SQUAD_LIST,
+  EMPTY_SQUAD,
+  EMPTY_SQUAD_MEMBER_LIST,
+  EMPTY_SQUAD_MEMBER,
   EMPTY_USER,
   EMPTY_WORKSPACE_LIST,
   InboxListSchema,
@@ -127,6 +136,9 @@ import {
   SkillListSchema,
   SendChatMessageResponseSchema,
   SquadListSchema,
+  SquadSchema,
+  SquadMemberSchema,
+  SquadMemberListSchema,
   TaskMessageListSchema,
   EMPTY_TASK_MESSAGE_LIST,
   UserSchema,
@@ -707,6 +719,99 @@ class ApiClient {
     });
     return parseWithFallback(raw, SquadListSchema, EMPTY_SQUAD_LIST, {
       endpoint: "listSquads",
+    });
+  }
+
+  // --- Squads (团队) ---
+  // Mirrors packages/core/api/client.ts:3062+ — same endpoint shapes, same
+  // zod-parse + fallback pattern. Mobile adds AbortSignal forwarding so
+  // TanStack Query can cancel stale calls.
+
+  async getSquad(
+    id: string,
+    opts?: { signal?: AbortSignal },
+  ): Promise<Squad> {
+    return this.fetchValidated(
+      `/api/squads/${id}`,
+      SquadSchema,
+      EMPTY_SQUAD,
+      { ...opts, endpoint: "getSquad" },
+    );
+  }
+
+  async createSquad(data: CreateSquadRequest): Promise<Squad> {
+    return this.fetchValidatedWith(
+      "/api/squads",
+      SquadSchema,
+      EMPTY_SQUAD,
+      { method: "POST", body: JSON.stringify(data) },
+      { endpoint: "POST /api/squads" },
+    );
+  }
+
+  async updateSquad(id: string, data: UpdateSquadRequest): Promise<Squad> {
+    return this.fetchValidatedWith(
+      `/api/squads/${id}`,
+      SquadSchema,
+      EMPTY_SQUAD,
+      { method: "PUT", body: JSON.stringify(data) },
+      { endpoint: "PUT /api/squads/{id}" },
+    );
+  }
+
+  async deleteSquad(id: string): Promise<void> {
+    await this.fetch(`/api/squads/${id}`, { method: "DELETE" });
+  }
+
+  async listSquadMembers(
+    squadId: string,
+    opts?: { signal?: AbortSignal },
+  ): Promise<SquadMember[]> {
+    const raw = await this.fetch<unknown>(
+      `/api/squads/${squadId}/members`,
+      { signal: opts?.signal },
+    );
+    return parseWithFallback(
+      raw,
+      SquadMemberListSchema,
+      EMPTY_SQUAD_MEMBER_LIST,
+      { endpoint: "listSquadMembers" },
+    );
+  }
+
+  async addSquadMember(
+    squadId: string,
+    data: AddSquadMemberRequest,
+  ): Promise<SquadMember> {
+    const raw = await this.fetch<unknown>(
+      `/api/squads/${squadId}/members`,
+      { method: "POST", body: JSON.stringify(data) },
+    );
+    return parseWithFallback(raw, SquadMemberSchema, EMPTY_SQUAD_MEMBER, {
+      endpoint: "addSquadMember",
+    });
+  }
+
+  async updateSquadMemberRole(
+    squadId: string,
+    data: UpdateSquadMemberRoleRequest,
+  ): Promise<SquadMember> {
+    const raw = await this.fetch<unknown>(
+      `/api/squads/${squadId}/members/role`,
+      { method: "PATCH", body: JSON.stringify(data) },
+    );
+    return parseWithFallback(raw, SquadMemberSchema, EMPTY_SQUAD_MEMBER, {
+      endpoint: "updateSquadMemberRole",
+    });
+  }
+
+  async removeSquadMember(
+    squadId: string,
+    data: RemoveSquadMemberRequest,
+  ): Promise<void> {
+    await this.fetch(`/api/squads/${squadId}/members`, {
+      method: "DELETE",
+      body: JSON.stringify(data),
     });
   }
 

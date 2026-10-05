@@ -75,6 +75,7 @@ const NAV_ITEMS: NavItem[] = [
   { labelKey: "issues", icon: "list-outline", path: "/more/issues" },
   { labelKey: "projects", icon: "albums-outline", path: "/more/projects" },
   { labelKey: "agents", icon: "person-circle-outline", path: "/more/agents" },
+  { labelKey: "teams", icon: "people-outline", path: "/more/squads" },
 ];
 
 export function MoreTabDropdownAnchor({

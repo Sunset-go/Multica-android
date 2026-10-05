@@ -39,6 +39,8 @@ import type {
   SkillSummary,
   AgentEnvResponse,
   Squad,
+  SquadMember,
+  SquadMemberType,
   TaskMessagePayload,
   User,
   Workspace,
@@ -812,6 +814,14 @@ export const EMPTY_RUNTIME_LIST: RuntimeDevice[] = [];
 // bar (id, name, archived_at filter) plus identity/timestamp fields that are
 // safe to default. `.loose()` so the server can add squad fields without
 // breaking the parser.
+const SquadMemberPreviewSchema = z.object({
+  member_type: (z.string().default("agent") as unknown as z.ZodType<
+    SquadMemberType
+  >),
+  member_id: z.string().default(""),
+  role: z.string().default(""),
+}).loose();
+
 export const SquadSchema: z.ZodType<Squad> = z.object({
   id: z.string(),
   workspace_id: z.string().default(""),
@@ -825,10 +835,61 @@ export const SquadSchema: z.ZodType<Squad> = z.object({
   updated_at: z.string().default(""),
   archived_at: z.string().nullable().default(null),
   archived_by: z.string().nullable().default(null),
+  member_count: z.number().default(0),
+  member_preview: z.array(SquadMemberPreviewSchema).default([]),
 }).loose();
 
 export const SquadListSchema = z.array(SquadSchema).default([]);
 export const EMPTY_SQUAD_LIST: Squad[] = [];
+export const EMPTY_SQUAD: Squad = {
+  id: "",
+  workspace_id: "",
+  name: "",
+  description: "",
+  instructions: "",
+  avatar_url: null,
+  leader_id: "",
+  creator_id: "",
+  created_at: "",
+  updated_at: "",
+  archived_at: null,
+  archived_by: null,
+  member_count: 0,
+  member_preview: [],
+};
+
+// SquadMember — one row in the squad's membership. `member_type` is
+// "agent" (AI squad member) or "member" (human). The mobile edit page only
+// edits member_type + member_id; role is server-derived ("leader" for the
+// squad's leader_id, "member" otherwise).
+export const SquadMemberSchema: z.ZodType<
+  SquadMember
+> = z.object({
+  id: z.string(),
+  squad_id: z.string().default(""),
+  member_type: (z.string().default("agent") as unknown as z.ZodType<
+    SquadMemberType
+  >),
+  member_id: z.string().default(""),
+  role: z.string().default("member"),
+  created_at: z.string().default(""),
+}).loose();
+
+export const SquadMemberListSchema = z.array(SquadMemberSchema).default([]);
+export const EMPTY_SQUAD_MEMBER_LIST: SquadMember[] = [];
+
+// Single-item fallback — addSquadMember / updateSquadMemberRole return one
+// SquadMember (not an array). This sentinel keeps the response shape honest
+// when the server drifts: parseWithFallback yields EMPTY_SQUAD_MEMBER
+// (all-zero fields) rather than an empty list entry.
+export const EMPTY_SQUAD_MEMBER: SquadMember = {
+  id: "",
+  squad_id: "",
+  member_type: "agent",
+  member_id: "",
+  role: "member",
+  created_at: "",
+};
 
 // Single-issue fallback used by getIssue. Mobile reuses IssueSchema from core
 // for parsing; this sentinel lets parseWithFallback yield a structurally-

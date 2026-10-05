@@ -66,6 +66,7 @@ export interface TranslationDict {
     issues: string;
     projects: string;
     agents: string;
+    teams: string;
     accountSettings: string;
     switchWorkspace: string;
     workspace: string;
@@ -103,9 +104,74 @@ export interface TranslationDict {
     issues: string;
     projects: string;
     agents: string;
+    teams: string;
     settings: string;
     profile: string;
     notifications: string;
+  };
+  squadEdit: {
+    title: string;
+    profile: string;
+    name: string;
+    namePlaceholder: string;
+    description: string;
+    descriptionPlaceholder: string;
+    avatarUrl: string;
+    avatarUrlPlaceholder: string;
+    instructions: string;
+    instructionsPlaceholder: string;
+    leader: string;
+    noLeaderSelected: string;
+    pickLeader: string;
+    noAgents: string;
+    noSquads: string;
+    members: string;
+    noMembers: string;
+    addMember: string;
+    removeMember: string;
+    roleLeader: string;
+    roleMember: string;
+    addAgent: string;
+    addHuman: string;
+    noAgentsAvailable: string;
+    noMembersAvailable: string;
+    agentSearchPlaceholder: string;
+    memberSearchPlaceholder: string;
+    selectedCount: (n: number) => string;
+    save: string;
+    saving: string;
+    saveSuccess: string;
+    saveError: string;
+    loadError: string;
+    squadNotFound: string;
+    createFailed: string;
+    deleteConfirm: string;
+    deleteTitle: string;
+    deleteMessage: (name: string) => string;
+    deleteSuccess: string;
+    deleteError: string;
+    addMemberFailed: string;
+    removeMemberFailed: string;
+  };
+  squadNew: {
+    title: string;
+    profile: string;
+    name: string;
+    namePlaceholder: string;
+    description: string;
+    descriptionPlaceholder: string;
+    avatarUrl: string;
+    avatarUrlPlaceholder: string;
+    instructions: string;
+    instructionsPlaceholder: string;
+    leader: string;
+    selectLeader: string;
+    noLeaderSelected: string;
+    noAgents: string;
+    optional: string;
+    creating: string;
+    createFailed: string;
+    cancel: string;
   };
   auth: {
     signInTitle: string;
@@ -700,6 +766,7 @@ const zh: TranslationDict = {
     issues: "任务",
     projects: "项目",
     agents: "智能体",
+    teams: "团队",
     accountSettings: "账户设置",
     switchWorkspace: "切换工作区",
     workspace: "工作区",
@@ -737,6 +804,7 @@ const zh: TranslationDict = {
     issues: "任务",
     projects: "项目",
     agents: "智能体",
+    teams: "团队",
     settings: "设置",
     profile: "个人资料",
     notifications: "通知",
@@ -893,6 +961,70 @@ const zh: TranslationDict = {
     optional: "可选",
     creating: "创建中…",
     createFailed: "创建失败",
+  },
+  squadEdit: {
+    title: "编辑团队",
+    profile: "资料",
+    name: "名称",
+    namePlaceholder: "团队名称",
+    description: "描述",
+    descriptionPlaceholder: "一句话介绍这个团队",
+    avatarUrl: "头像 URL",
+    avatarUrlPlaceholder: "https://…（可选）",
+    instructions: "团队指令",
+    instructionsPlaceholder: "团队层面的提示词、约定或协作方式",
+    leader: "队长",
+    noLeaderSelected: "未选择",
+    pickLeader: "选择队长",
+    noAgents: "暂无可用的智能体",
+    noSquads: "还没有团队，点击下方按钮创建",
+    members: "成员",
+    noMembers: "团队还没有成员，点击下方按钮添加",
+    addMember: "添加成员",
+    removeMember: "移除成员",
+    roleLeader: "队长",
+    roleMember: "成员",
+    addAgent: "添加智能体",
+    addHuman: "添加成员",
+    noAgentsAvailable: "工作区暂无可用智能体",
+    noMembersAvailable: "工作区暂无其他成员",
+    agentSearchPlaceholder: "搜索智能体…",
+    memberSearchPlaceholder: "搜索成员…",
+    selectedCount: (n) => `已选择 ${n} 个`,
+    save: "保存",
+    saving: "保存中…",
+    saveSuccess: "已保存",
+    saveError: "保存失败",
+    loadError: "加载失败",
+    squadNotFound: "团队不存在",
+    createFailed: "创建失败",
+    deleteConfirm: "删除团队",
+    deleteTitle: "删除团队？",
+    deleteMessage: (name) => `确定删除“${name}”吗？此操作无法撤销。`,
+    deleteSuccess: "已删除",
+    deleteError: "删除失败",
+    addMemberFailed: "添加成员失败",
+    removeMemberFailed: "移除成员失败",
+  },
+  squadNew: {
+    title: "新建团队",
+    profile: "资料",
+    name: "名称",
+    namePlaceholder: "团队名称（必填）",
+    description: "描述",
+    descriptionPlaceholder: "一句话介绍这个团队",
+    avatarUrl: "头像 URL",
+    avatarUrlPlaceholder: "https://…（可选）",
+    instructions: "团队指令",
+    instructionsPlaceholder: "团队层面的提示词、约定或协作方式",
+    leader: "队长",
+    selectLeader: "选择队长",
+    noLeaderSelected: "未选择",
+    noAgents: "工作区暂无可用智能体",
+    optional: "可选",
+    creating: "创建中…",
+    createFailed: "创建失败",
+    cancel: "取消",
   },
   inbox: {
     title: "收件箱",
@@ -1374,6 +1506,7 @@ const en: TranslationDict = {
     issues: "Issues",
     projects: "Projects",
     agents: "Agents",
+    teams: "Teams",
     accountSettings: "Account Settings",
     switchWorkspace: "Switch Workspace",
     workspace: "Workspace",
@@ -1411,6 +1544,7 @@ const en: TranslationDict = {
     issues: "Issues",
     projects: "Projects",
     agents: "Agents",
+    teams: "Teams",
     settings: "Settings",
     profile: "Profile",
     notifications: "Notifications",
@@ -1567,6 +1701,70 @@ const en: TranslationDict = {
     optional: "Optional",
     creating: "Creating…",
     createFailed: "Failed to create",
+  },
+  squadEdit: {
+    title: "Edit Team",
+    profile: "Profile",
+    name: "Name",
+    namePlaceholder: "Team name",
+    description: "Description",
+    descriptionPlaceholder: "Briefly describe this team",
+    avatarUrl: "Avatar URL",
+    avatarUrlPlaceholder: "https://… (optional)",
+    instructions: "Team instructions",
+    instructionsPlaceholder: "Team-level prompts, conventions, or collaboration style",
+    leader: "Leader",
+    noLeaderSelected: "Not selected",
+    pickLeader: "Select leader",
+    noAgents: "No agents available in this workspace",
+    noSquads: "No teams yet. Tap below to create one.",
+    members: "Members",
+    noMembers: "No members yet. Tap below to add.",
+    addMember: "Add member",
+    removeMember: "Remove member",
+    roleLeader: "Leader",
+    roleMember: "Member",
+    addAgent: "Add agent",
+    addHuman: "Add human",
+    noAgentsAvailable: "No agents available in this workspace",
+    noMembersAvailable: "No other members in this workspace",
+    agentSearchPlaceholder: "Search agents…",
+    memberSearchPlaceholder: "Search members…",
+    selectedCount: (n) => `${n} selected`,
+    save: "Save",
+    saving: "Saving…",
+    saveSuccess: "Saved",
+    saveError: "Save failed",
+    loadError: "Failed to load",
+    squadNotFound: "Team not found",
+    createFailed: "Failed to create",
+    deleteConfirm: "Delete team",
+    deleteTitle: "Delete team?",
+    deleteMessage: (name) => `Delete “${name}”? This cannot be undone.`,
+    deleteSuccess: "Deleted",
+    deleteError: "Delete failed",
+    addMemberFailed: "Failed to add member",
+    removeMemberFailed: "Failed to remove member",
+  },
+  squadNew: {
+    title: "New Team",
+    profile: "Profile",
+    name: "Name",
+    namePlaceholder: "Team name (required)",
+    description: "Description",
+    descriptionPlaceholder: "Briefly describe this team",
+    avatarUrl: "Avatar URL",
+    avatarUrlPlaceholder: "https://… (optional)",
+    instructions: "Team instructions",
+    instructionsPlaceholder: "Team-level prompts, conventions, or collaboration style",
+    leader: "Leader",
+    selectLeader: "Select leader",
+    noLeaderSelected: "Not selected",
+    noAgents: "No agents available in this workspace",
+    optional: "Optional",
+    creating: "Creating…",
+    createFailed: "Failed to create",
+    cancel: "Cancel",
   },
   inbox: {
     title: "Inbox",
