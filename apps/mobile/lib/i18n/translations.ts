@@ -186,6 +186,57 @@ export interface TranslationDict {
     chatUnavailable: string;
     stepCount: (n: number) => string;
   };
+  agentEdit: {
+    title: string;
+    profile: string;
+    name: string;
+    namePlaceholder: string;
+    description: string;
+    descriptionPlaceholder: string;
+    avatarUrl: string;
+    avatarUrlPlaceholder: string;
+    instructions: string;
+    instructionsPlaceholder: string;
+    instructionsSystemNote: string;
+    runtimeConfig: string;
+    runtime: string;
+    model: string;
+    thinkingLevel: string;
+    serviceTier: string;
+    maxConcurrentTasks: string;
+    notBound: string;
+    noRuntimeSelected: string;
+    noModelSelected: string;
+    noThinkingLevel: string;
+    noServiceTier: string;
+    pickRuntime: string;
+    pickModel: string;
+    pickThinkingLevel: string;
+    pickServiceTier: string;
+    loadingModels: string;
+    modelsUnavailable: string;
+    permissions: string;
+    permissionScope: string;
+    scopePrivate: string;
+    scopeWorkspace: string;
+    scopeMembers: string;
+    permissionOwnerOnly: string;
+    skills: string;
+    skillsSearchPlaceholder: string;
+    noSkills: string;
+    noSkillsAssigned: string;
+    envVars: string;
+    envKey: string;
+    envValue: string;
+    envAdd: string;
+    envHidden: string;
+    save: string;
+    saving: string;
+    saveSuccess: string;
+    saveError: string;
+    loadError: string;
+    agentNotFound: string;
+  };
   inbox: {
     title: string;
     actions: string;
@@ -745,6 +796,57 @@ const zh: TranslationDict = {
     agentWorking: "智能体正在工作中…",
     chatUnavailable: "无法对话",
     stepCount: (n) => `${n} 个步骤`,
+  },
+  agentEdit: {
+    title: "编辑智能体",
+    profile: "资料",
+    name: "名称",
+    namePlaceholder: "智能体名称",
+    description: "描述",
+    descriptionPlaceholder: "一句话介绍这个智能体",
+    avatarUrl: "头像链接",
+    avatarUrlPlaceholder: "https://...",
+    instructions: "指令",
+    instructionsPlaceholder: "告诉智能体它应该做什么…",
+    instructionsSystemNote: "系统智能体指令不可修改",
+    runtimeConfig: "运行配置",
+    runtime: "运行时",
+    model: "模型",
+    thinkingLevel: "思考深度",
+    serviceTier: "服务层级",
+    maxConcurrentTasks: "最大并发任务数",
+    notBound: "未绑定",
+    noRuntimeSelected: "未选择",
+    noModelSelected: "未选择",
+    noThinkingLevel: "默认",
+    noServiceTier: "默认",
+    pickRuntime: "选择运行时",
+    pickModel: "选择模型",
+    pickThinkingLevel: "选择思考深度",
+    pickServiceTier: "选择服务层级",
+    loadingModels: "加载模型中…",
+    modelsUnavailable: "无法获取模型列表",
+    permissions: "权限",
+    permissionScope: "可见范围",
+    scopePrivate: "私有",
+    scopeWorkspace: "工作区",
+    scopeMembers: "指定成员",
+    permissionOwnerOnly: "权限修改仅所有者可执行",
+    skills: "技能",
+    skillsSearchPlaceholder: "搜索技能…",
+    noSkills: "此工作区暂无技能",
+    noSkillsAssigned: "未分配技能",
+    envVars: "环境变量",
+    envKey: "变量名",
+    envValue: "值",
+    envAdd: "添加变量",
+    envHidden: "仅智能体所有者和工作区管理员可查看和编辑",
+    save: "保存",
+    saving: "保存中…",
+    saveSuccess: "已保存",
+    saveError: "保存失败",
+    loadError: "加载失败",
+    agentNotFound: "智能体不存在",
   },
   inbox: {
     title: "收件箱",
@@ -1345,6 +1447,57 @@ const en: TranslationDict = {
     agentWorking: "Agent is working…",
     chatUnavailable: "Chat unavailable",
     stepCount: (n) => `${n} step${n === 1 ? "" : "s"}`,
+  },
+  agentEdit: {
+    title: "Edit Agent",
+    profile: "Profile",
+    name: "Name",
+    namePlaceholder: "Agent name",
+    description: "Description",
+    descriptionPlaceholder: "Briefly describe what this agent does",
+    avatarUrl: "Avatar URL",
+    avatarUrlPlaceholder: "https://...",
+    instructions: "Instructions",
+    instructionsPlaceholder: "Tell the agent what it should do…",
+    instructionsSystemNote: "System agent instructions cannot be modified",
+    runtimeConfig: "Runtime Config",
+    runtime: "Runtime",
+    model: "Model",
+    thinkingLevel: "Thinking Level",
+    serviceTier: "Service Tier",
+    maxConcurrentTasks: "Max Concurrent Tasks",
+    notBound: "Not Bound",
+    noRuntimeSelected: "Not selected",
+    noModelSelected: "Not selected",
+    noThinkingLevel: "Default",
+    noServiceTier: "Default",
+    pickRuntime: "Pick Runtime",
+    pickModel: "Pick Model",
+    pickThinkingLevel: "Pick Thinking Level",
+    pickServiceTier: "Pick Service Tier",
+    loadingModels: "Loading models…",
+    modelsUnavailable: "Unable to load models",
+    permissions: "Permissions",
+    permissionScope: "Visibility",
+    scopePrivate: "Private",
+    scopeWorkspace: "Workspace",
+    scopeMembers: "Specific Members",
+    permissionOwnerOnly: "Only the agent owner can change permissions",
+    skills: "Skills",
+    skillsSearchPlaceholder: "Search skills…",
+    noSkills: "No skills in this workspace",
+    noSkillsAssigned: "No skills assigned",
+    envVars: "Environment Variables",
+    envKey: "Key",
+    envValue: "Value",
+    envAdd: "Add Variable",
+    envHidden: "Only the agent owner and workspace admins can view and edit",
+    save: "Save",
+    saving: "Saving…",
+    saveSuccess: "Saved",
+    saveError: "Failed to save",
+    loadError: "Failed to load",
+    agentNotFound: "Agent not found",
   },
   inbox: {
     title: "Inbox",

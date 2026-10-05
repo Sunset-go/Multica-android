@@ -309,6 +309,13 @@ export default function WorkspaceLayout() {
           options={{ title: t.screens.agents, headerBackTitle: t.common.back }}
         />
         <Stack.Screen
+          name="more/agents/[id]"
+          options={{
+            title: t.agentEdit.title,
+            headerBackTitle: t.screens.agents,
+          }}
+        />
+        <Stack.Screen
           name="more/pins"
           options={{ title: t.screens.pins, headerBackTitle: t.common.back }}
         />

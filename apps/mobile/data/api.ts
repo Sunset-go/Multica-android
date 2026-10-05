@@ -15,6 +15,7 @@
  */
 import type {
   Agent,
+  AgentEnvResponse,
   AgentTask,
   Attachment,
   ChatMessage,
@@ -47,11 +48,15 @@ import type {
   SearchIssuesResponse,
   SearchProjectsResponse,
   SendChatMessageResponse,
+  SetAgentSkillsRequest,
+  SkillSummary,
   Squad,
   NotificationPreferenceResponse,
   NotificationPreferences,
   TaskMessagePayload,
   TimelineEntry,
+  UpdateAgentEnvRequest,
+  UpdateAgentRequest,
   UpdateIssueRequest,
   UpdateMeRequest,
   UpdateProjectRequest,
@@ -67,6 +72,8 @@ import {
 } from "@multica/core/api/schemas";
 import {
   ActiveTasksResponseSchema,
+  AgentSchema,
+  AgentEnvResponseSchema,
   AgentListSchema,
   AgentTaskListSchema,
   AttachmentListSchema,
@@ -79,6 +86,8 @@ import {
   EMPTY_ACTIVE_TASKS_RESPONSE,
   EMPTY_AGENT_LIST,
   EMPTY_AGENT_TASK_LIST,
+  EMPTY_AGENT_FALLBACK,
+  EMPTY_AGENT_ENV_RESPONSE,
   EMPTY_ATTACHMENT_LIST,
   EMPTY_CHAT_MESSAGE_LIST,
   EMPTY_CHAT_PENDING_TASK,
@@ -96,6 +105,7 @@ import {
   EMPTY_RUNTIME_LIST,
   EMPTY_SEARCH_ISSUES_RESPONSE,
   EMPTY_SEARCH_PROJECTS_RESPONSE,
+  EMPTY_SKILL_LIST,
   EMPTY_SQUAD_LIST,
   EMPTY_USER,
   EMPTY_WORKSPACE_LIST,
@@ -113,6 +123,7 @@ import {
   MALFORMED_RUNTIME_MODEL_LIST_REQUEST,
   SearchIssuesResponseSchema,
   SearchProjectsResponseSchema,
+  SkillListSchema,
   SendChatMessageResponseSchema,
   SquadListSchema,
   TaskMessageListSchema,
@@ -519,6 +530,93 @@ class ApiClient {
     });
     return parseWithFallback(raw, AgentListSchema, EMPTY_AGENT_LIST, {
       endpoint: "listAgents",
+    });
+  }
+
+  // --- Agent detail / edit ---
+  // Mirrors core client surface (packages/core/api/client.ts:1183+).
+  // getAgent returns the full Agent shape; updateAgent sends only changed
+  // fields via UpdateAgentRequest. Env reads/writes go through dedicated
+  // endpoints (MUL-2600) — owner/admin gated server-side.
+  async getAgent(
+    id: string,
+    opts?: { signal?: AbortSignal },
+  ): Promise<Agent> {
+    return this.fetchValidated(
+      `/api/agents/${id}`,
+      AgentSchema,
+      EMPTY_AGENT_FALLBACK,
+      { ...opts, endpoint: "getAgent" },
+    );
+  }
+
+  async updateAgent(id: string, data: UpdateAgentRequest): Promise<Agent> {
+    return this.fetchValidatedWith(
+      `/api/agents/${id}`,
+      AgentSchema,
+      EMPTY_AGENT_FALLBACK,
+      { method: "PUT", body: JSON.stringify(data) },
+      { endpoint: "PUT /api/agents/{id}" },
+    );
+  }
+
+  async getAgentEnv(
+    id: string,
+    opts?: { signal?: AbortSignal },
+  ): Promise<AgentEnvResponse> {
+    return this.fetchValidated(
+      `/api/agents/${id}/env`,
+      AgentEnvResponseSchema,
+      EMPTY_AGENT_ENV_RESPONSE,
+      { ...opts, endpoint: "getAgentEnv" },
+    );
+  }
+
+  async updateAgentEnv(
+    id: string,
+    data: UpdateAgentEnvRequest,
+  ): Promise<AgentEnvResponse> {
+    return this.fetchValidatedWith(
+      `/api/agents/${id}/env`,
+      AgentEnvResponseSchema,
+      EMPTY_AGENT_ENV_RESPONSE,
+      { method: "PUT", body: JSON.stringify(data) },
+      { endpoint: "PUT /api/agents/{id}/env" },
+    );
+  }
+
+  // --- Skills ---
+  // listSkills: workspace-wide skill catalog for the assignment picker.
+  // listAgentSkills: skills currently assigned to an agent.
+  // setAgentSkills: wholesale replace (PUT) — server upserts.
+  async listSkills(opts?: { signal?: AbortSignal }): Promise<SkillSummary[]> {
+    const raw = await this.fetch<unknown>("/api/skills", {
+      signal: opts?.signal,
+    });
+    return parseWithFallback(raw, SkillListSchema, EMPTY_SKILL_LIST, {
+      endpoint: "listSkills",
+    });
+  }
+
+  async listAgentSkills(
+    agentId: string,
+    opts?: { signal?: AbortSignal },
+  ): Promise<SkillSummary[]> {
+    const raw = await this.fetch<unknown>(`/api/agents/${agentId}/skills`, {
+      signal: opts?.signal,
+    });
+    return parseWithFallback(raw, SkillListSchema, EMPTY_SKILL_LIST, {
+      endpoint: "listAgentSkills",
+    });
+  }
+
+  async setAgentSkills(
+    agentId: string,
+    data: SetAgentSkillsRequest,
+  ): Promise<void> {
+    await this.fetch<void>(`/api/agents/${agentId}/skills`, {
+      method: "PUT",
+      body: JSON.stringify(data),
     });
   }
 

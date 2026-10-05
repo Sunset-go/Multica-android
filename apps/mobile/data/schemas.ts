@@ -36,6 +36,8 @@ import type {
   RuntimeModel,
   RuntimeModelListRequest,
   RuntimeModelsResult,
+  SkillSummary,
+  AgentEnvResponse,
   Squad,
   TaskMessagePayload,
   User,
@@ -648,6 +650,63 @@ export const AgentSchema: z.ZodType<Agent> = z.object({
 
 export const AgentListSchema = z.array(AgentSchema).default([]);
 export const EMPTY_AGENT_LIST: Agent[] = [];
+
+// Fallback for getAgent — same shape as Agent with id "" so the edit page
+// can treat a malformed response as "not found".
+export const EMPTY_AGENT_FALLBACK: Agent = {
+  id: "",
+  workspace_id: "",
+  runtime_id: "",
+  name: "",
+  description: "",
+  instructions: "",
+  avatar_url: null,
+  runtime_mode: "local" as const,
+  runtime_config: {},
+  custom_args: [],
+  visibility: "workspace",
+  permission_mode: "private",
+  invocation_targets: [],
+  status: "offline",
+  max_concurrent_tasks: 1,
+  model: "",
+  owner_id: null,
+  skills: [],
+  created_at: "",
+  updated_at: "",
+  archived_at: null,
+  archived_by: null,
+};
+
+// --- Skill schemas ---
+// Mirrors SkillSummary from packages/core/types/agent.ts. Used by the
+// agent edit page's skill assignment picker (listSkills + listAgentSkills).
+export const SkillSummarySchema: z.ZodType<SkillSummary> = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  name: z.string().default(""),
+  description: z.string().default(""),
+  config: z.record(z.string(), z.unknown()).default({}),
+  created_by: z.string().nullable().default(null),
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  enabled: z.boolean().optional(),
+}).loose();
+
+export const SkillListSchema = z.array(SkillSummarySchema).default([]);
+export const EMPTY_SKILL_LIST: SkillSummary[] = [];
+
+// --- Agent env schemas ---
+// Wire shape for GET/PUT /api/agents/{id}/env (MUL-2600).
+export const AgentEnvResponseSchema: z.ZodType<AgentEnvResponse> = z.object({
+  agent_id: z.string().default(""),
+  custom_env: z.record(z.string(), z.string()).default({}),
+}).loose();
+
+export const EMPTY_AGENT_ENV_RESPONSE: AgentEnvResponse = {
+  agent_id: "",
+  custom_env: {},
+};
 
 // --- Runtime model discovery schemas ---
 // Mobile mirrors the shape from packages/core/types/agent.ts so the
