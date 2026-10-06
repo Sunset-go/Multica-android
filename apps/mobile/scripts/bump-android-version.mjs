@@ -3,9 +3,18 @@
  * Rewrite the mobile app version and every file that carries it.
  *
  * Modes:
- *   - default: bump patch by +1 (0.2.0 → 0.2.1)
+ *   - default: bump patch by +1 (0.2.0 → 0.2.1), **idempotent** —
+ *     exits without writing if all four files are already consistent.
+ *     Prevents accidental double-bumps when the build script chain
+ *     re-invokes bump before each gradle build (e.g. running
+ *     `build:android:apk` then `build:android:apk:universal` in the
+ *     same session — only the first bump would apply).
  *   - --set <semver>: write the exact version (used by the GitHub Actions
- *     release workflow so a `v0.2.3` tag builds exactly 0.2.3, not 0.2.4)
+ *     release workflow so a `v0.2.3` tag builds exactly 0.2.3, not 0.2.4).
+ *     Idempotent too — skips if already at that version.
+ *   - --force: bypass idempotency check and always bump/set.
+ *     Used by `pnpm bump:version` where the user has explicitly
+ *     asked for a new version.
  *
  * Files updated (all kept in sync so a direct gradle build AND a future
  * `expo prebuild` both produce the new version):
@@ -51,6 +60,7 @@ const prevVersion = mobilePkg.version;
 // Resolve target version: --set <semver> writes exactly that; otherwise bump.
 const setArgIndex = process.argv.indexOf("--set");
 const setVersion = setArgIndex >= 0 ? process.argv[setArgIndex + 1] : undefined;
+const force = process.argv.includes("--force");
 
 function parseSemver(v) {
   const m = /^(\d+)\.(\d+)\.(\d+)$/.exec(v);
@@ -59,6 +69,30 @@ function parseSemver(v) {
     process.exit(1);
   }
   return m.slice(1).map(Number);
+}
+
+function semverToCode(v) {
+  const [mj, mn, pt] = parseSemver(v);
+  return mj * 10000 + mn * 100 + pt;
+}
+
+// --- idempotency check ---
+// If app.config.ts's versionCode already matches what mobile/package.json
+// would produce, all four files are consistent. Skip the bump unless --force
+// or --set points at a different version.
+if (!force) {
+  const currentConfig = readFileSync(paths.config, "utf8");
+  const codeMatch = currentConfig.match(/versionCode:\s*(\d+)/);
+  const currentCode = codeMatch ? parseInt(codeMatch[1], 10) : null;
+  const currentVersionMatch = currentConfig.match(/version:\s*"(\d+\.\d+\.\d+)"/);
+  const currentVersion = currentVersionMatch ? currentVersionMatch[1] : null;
+  if (currentVersion === prevVersion && currentCode === semverToCode(prevVersion)) {
+    console.log(
+      `[bump-android-version] already in sync at ${prevVersion} (versionCode ${currentCode}); ` +
+        `skipping bump. Use --force to bump anyway.`,
+    );
+    process.exit(0);
+  }
 }
 
 const [maj, min, pat] = setVersion

@@ -1,6 +1,6 @@
 {
   "name": "@multica/mobile",
-  "version": "0.2.12",
+  "version": "0.2.13",
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
@@ -18,9 +18,9 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "bump:version": "node scripts/bump-android-version.mjs",
-    "build:android:apk": "node scripts/bump-android-version.mjs && node scripts/patch-gradle.mjs && cd android && ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a && cd .. && node scripts/copy-versioned-apk.mjs",
-    "build:android:apk:universal": "node scripts/bump-android-version.mjs && node scripts/patch-gradle.mjs && cd android && ./gradlew assembleRelease && cd .. && node scripts/copy-versioned-apk.mjs"
+    "bump:version": "node scripts/bump-android-version.mjs --force",
+    "build:android:apk": "node scripts/bump-android-version.mjs && node scripts/patch-gradle.mjs && node scripts/run-gradle.mjs assembleRelease -PreactNativeArchitectures=arm64-v8a && node scripts/copy-versioned-apk.mjs",
+    "build:android:apk:universal": "node scripts/bump-android-version.mjs && node scripts/patch-gradle.mjs && node scripts/run-gradle.mjs assembleRelease && node scripts/copy-versioned-apk.mjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
