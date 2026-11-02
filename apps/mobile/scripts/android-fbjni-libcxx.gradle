@@ -1,0 +1,89 @@
+// Applied to `android/app/build.gradle` by
+//   - apps/mobile/plugins/with-fbjni-libcxx.js   (expo prebuild path: CI, fresh checkout)
+//   - apps/mobile/scripts/patch-gradle.mjs        (builds that reuse an existing android/ dir)
+// Keep both entry points in sync with this file.
+//
+// Problem: `react-android:0.83.6` packages a `libc++_shared.so` whose export
+// table does NOT contain `__cxa_init_primary_exception`, but fbjni 0.8.1's
+// prebuilt `libfbjni.so` imports that symbol. Whichever duplicate AGP's
+// native-lib merge keeps, the app can die at startup with:
+//
+//   java.lang.UnsatisfiedLinkError: dlopen failed: cannot locate symbol
+//              "__cxa_init_primary_exception" referenced by ".../libfbjni.so"
+//   com.facebook.soloader.SoLoaderDSONotFoundError: couldn't find DSO to
+//              load: libfbjni.so
+//
+// Fix: after the native-lib merge, overwrite every ABI's `libc++_shared.so`
+// with the copy shipped inside fbjni's own AAR — the exact build fbjni's
+// `libfbjni.so` was linked against. fbjni's copy exports a strict superset of
+// RN's copy (verified with `llvm-nm`: 0 missing exports, 4 extra).
+
+if (!project.configurations.findByName("fbjniCxx")) {
+    configurations {
+        fbjniCxx
+    }
+
+    dependencies {
+        fbjniCxx "com.facebook.fbjni:fbjni:0.8.1@aar"
+    }
+
+    def replaceMergedLibcxx = { task, mergedLibDir ->
+        def aar = configurations.fbjniCxx.resolvedConfiguration.resolvedArtifacts
+                .find { it.name == "fbjni" }?.file
+        if (aar == null) {
+            logger.warn("[fbjni-cxx] fbjni AAR could not be resolved — libc++_shared.so left as-is")
+            return
+        }
+
+        def tmp = file("${project.buildDir}/tmp-fbjni-cxx")
+        project.copy {
+            from zipTree(aar)
+            include "jni/*/libc++_shared.so"
+            into tmp
+        }
+
+        fileTree(new File(tmp, "jni")).matching { include "*/libc++_shared.so" }.files.each { src ->
+            def dst = new File(mergedLibDir, "${src.parentFile.name}/libc++_shared.so")
+            if (dst.parentFile.exists()) {
+                dst.setWritable(true)
+                java.nio.file.Files.copy(
+                        src.toPath(),
+                        dst.toPath(),
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING
+                )
+                logger.lifecycle("[fbjni-cxx] replaced ${src.parentFile.name}/libc++_shared.so with fbjni's copy")
+            }
+        }
+    }
+
+    tasks.matching { it.name == "mergeReleaseNativeLibs" || it.name == "mergeDebugNativeLibs" }.configureEach { t ->
+        t.doLast {
+            // Locate the merged native-libs output. AGP writes it to
+            // <build>/intermediates/merged_native_libs/<variant>/<task>/out/lib,
+            // but the exact layout changes between AGP versions — so try the
+            // task's own output directories first and fall back to that path.
+            def candidates = []
+            t.outputs.files.files.each { f ->
+                if (f.isDirectory()) {
+                    candidates << new File(f, "lib")
+                    candidates << f
+                }
+            }
+            def variant = t.name.toLowerCase().contains("release") ? "release" : "debug"
+            candidates << file("${project.buildDir}/intermediates/merged_native_libs/${variant}/${t.name}/out/lib")
+
+            def libDir = candidates.find { dir ->
+                dir.isDirectory() && (
+                        new File(dir, "arm64-v8a").isDirectory() ||
+                        new File(dir, "armeabi-v7a").isDirectory() ||
+                        new File(dir, "x86_64").isDirectory()
+                )
+            }
+            if (libDir == null) {
+                logger.warn("[fbjni-cxx] merged native libs dir not found for ${t.name}")
+                return
+            }
+            replaceMergedLibcxx(t, libDir)
+        }
+    }
+}

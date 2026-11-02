@@ -81,3 +81,7 @@ __pycache__/
 
 # Build artifacts
 *.apk
+
+# CMake staging dir redirected here by patch-gradle.mjs (fix 8) to keep
+# generated JNI object paths under the Windows 260-char limit.
+.cxx/
