@@ -18,7 +18,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ...config,
     name: "Multica",
     slug: "multica-mobile",
-    version: "0.2.13",
+    version: "0.2.17",
     orientation: "portrait",
     userInterfaceStyle: "automatic",
     scheme: "multica",
@@ -32,7 +32,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       // be swapped per-store the way iOS bundle ids are, so a single
       // reverse-domain value is used for dev / staging / production.
       package: "ai.multica.mobile",
-      versionCode: 213,
+      versionCode: 217,
     },
     ios: {
       supportsTablet: false,
@@ -56,6 +56,10 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       "expo-secure-store",
       "@react-native-community/datetimepicker",
       "react-native-enriched-markdown",
+      // Package fbjni's own libc++_shared.so: react-android 0.83.6 ships one
+      // without `__cxa_init_primary_exception`, which libfbjni.so imports, so
+      // the app crashed on startup with SoLoaderDSONotFoundError.
+      "./plugins/with-fbjni-libcxx",
       [
         "expo-image-picker",
         {
@@ -74,6 +78,15 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         {
           ios: {
             buildReactNativeFromSource: true,
+          },
+          android: {
+            // Extract the .so files to the app's lib dir instead of loading them
+            // straight out of the APK: the linker then resolves a DSO's
+            // `libc++_shared.so` dependency to the copy sitting next to it in
+            // the app dir, rather than falling back to /system/lib64 (whose
+            // libc++ is far older). See scripts/android-fbjni-libcxx.gradle for
+            // the libc++ version skew this pairs with.
+            useLegacyPackaging: true,
           },
         },
       ],
