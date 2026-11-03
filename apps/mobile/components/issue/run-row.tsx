@@ -10,7 +10,8 @@
  * explicitly out of scope per /Users/qingnaiyuan/.claude/plans/
  * ok-plan-linked-taco.md.
  */
-import { Alert, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { showAlert } from "@/lib/alert";
 import type { AgentTask } from "@multica/core/types";
 import { Text } from "@/components/ui/text";
 import { ActorAvatar } from "@/components/ui/actor-avatar";
@@ -92,18 +93,14 @@ function CancelButton({
   const mutation = useCancelTask(issueId);
 
   const onPress = () => {
-    Alert.alert(
-      t.runRow.cancelTaskTitle,
-      t.runRow.cancelTaskMsg,
-      [
+    showAlert({ title: t.runRow.cancelTaskTitle, message: t.runRow.cancelTaskMsg, buttons: [
         { text: t.runRow.keepRunning, style: "cancel" },
         {
           text: t.runRow.cancelTask,
           style: "destructive",
           onPress: () => mutation.mutate(taskId),
         },
-      ],
-    );
+      ] });
   };
 
   return (

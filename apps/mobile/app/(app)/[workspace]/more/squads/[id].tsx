@@ -19,13 +19,13 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Modal,
   Pressable,
   ScrollView,
   TextInput,
   View,
 } from "react-native";
+import { showAlert } from "@/lib/alert";
 import { useLocalSearchParams, router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
@@ -111,10 +111,7 @@ export default function SquadEditPage() {
       { leader_id: newLeaderId },
       {
         onError: (e) => {
-          Alert.alert(
-            t.squadEdit.saveError,
-            e instanceof Error ? e.message : undefined,
-          );
+          showAlert({ title: t.squadEdit.saveError, message: e instanceof Error ? e.message : undefined });
         },
       },
     );
@@ -127,10 +124,7 @@ export default function SquadEditPage() {
         member_id: agent.id,
       });
     } catch (e) {
-      Alert.alert(
-        t.squadEdit.addMemberFailed,
-        e instanceof Error ? e.message : undefined,
-      );
+      showAlert({ title: t.squadEdit.addMemberFailed, message: e instanceof Error ? e.message : undefined });
     }
   };
 
@@ -141,18 +135,12 @@ export default function SquadEditPage() {
         member_id: member.user_id,
       });
     } catch (e) {
-      Alert.alert(
-        t.squadEdit.addMemberFailed,
-        e instanceof Error ? e.message : undefined,
-      );
+      showAlert({ title: t.squadEdit.addMemberFailed, message: e instanceof Error ? e.message : undefined });
     }
   };
 
   const handleRemoveMember = (member: SquadMember) => {
-    Alert.alert(
-      t.squadEdit.removeMember,
-      undefined,
-      [
+    showAlert({ title: t.squadEdit.removeMember, message: undefined, buttons: [
         {
           text: t.squadEdit.removeMember,
           style: "destructive" as const,
@@ -163,16 +151,12 @@ export default function SquadEditPage() {
                 member_id: member.member_id,
               });
             } catch (e) {
-              Alert.alert(
-                t.squadEdit.removeMemberFailed,
-                e instanceof Error ? e.message : undefined,
-              );
+              showAlert({ title: t.squadEdit.removeMemberFailed, message: e instanceof Error ? e.message : undefined });
             }
           },
         },
         { text: t.common.cancel, style: "cancel" as const },
-      ],
-    );
+      ] });
   };
 
   const handleSave = async () => {
@@ -186,14 +170,11 @@ export default function SquadEditPage() {
     if (Object.keys(patch).length === 0) return;
     try {
       await updateSquad.mutateAsync(patch as never);
-      Alert.alert("", t.squadEdit.saveSuccess, [
+      showAlert({ title: "", message: t.squadEdit.saveSuccess, buttons: [
         { text: "OK", onPress: () => router.back() },
-      ]);
+      ] });
     } catch (e) {
-      Alert.alert(
-        t.squadEdit.saveError,
-        e instanceof Error ? e.message : undefined,
-      );
+      showAlert({ title: t.squadEdit.saveError, message: e instanceof Error ? e.message : undefined });
     }
   };
 
@@ -453,9 +434,18 @@ function PickerModal<T>({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-black/40" />
-      <View className="flex-1" />
-      <View className="bg-background rounded-t-2xl max-h-[70%] flex flex-col">
+      {/* Android Modal's native dialog parent is wrap-content, not
+          flex — so `flex-1` on direct children collapses to auto
+          height and the sheet ends up glued to the bottom of the
+          screen with its list clipped. Use `position: absolute`
+          instead: the backdrop fills the dialog window, the sheet
+          is pinned to the bottom edge regardless of the native
+          dialog's layout behavior. */}
+      <Pressable
+        className="absolute inset-0 bg-black/40"
+        onPress={onClose}
+      />
+      <View className="absolute bottom-0 left-0 right-0 bg-background rounded-t-2xl max-h-[70%] flex flex-col">
         <View className="flex-row items-center justify-between px-4 py-3">
           <Text className="text-base font-semibold text-foreground">{title}</Text>
           <Pressable onPress={onClose} className="size-8 items-center justify-center">
@@ -673,15 +663,15 @@ function showLeaderPicker(
   t: ReturnType<typeof useT>,
 ) {
   if (agents.length === 0) {
-    Alert.alert("", t.squadEdit.noAgents);
+    showAlert({ title: "", message: t.squadEdit.noAgents });
     return;
   }
   const buttons = agents.map((a) => ({
     text: a.name,
     onPress: () => onChange(a.id),
   }));
-  Alert.alert(t.squadEdit.pickLeader, undefined, [
+  showAlert({ title: t.squadEdit.pickLeader, message: undefined, layout: "vertical", buttons: [
     ...buttons,
     { text: t.common.cancel, style: "cancel" as const },
-  ]);
+  ] });
 }

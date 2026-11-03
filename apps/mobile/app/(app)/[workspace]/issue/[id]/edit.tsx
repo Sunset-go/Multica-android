@@ -20,7 +20,6 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -28,6 +27,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { showAlert } from "@/lib/alert";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { stripChannelMediaMarkers } from "@multica/core/types";
@@ -87,18 +87,14 @@ export default function EditIssue() {
       router.back();
       return;
     }
-    Alert.alert(
-      t.issues.discardTitle,
-      t.issues.discardMsg,
-      [
+    showAlert({ title: t.issues.discardTitle, message: t.issues.discardMsg, buttons: [
         { text: t.common.keepEditing, style: "cancel" },
         {
           text: t.common.discard,
           style: "destructive",
           onPress: () => router.back(),
         },
-      ],
-    );
+      ] });
   }, [dirty]);
 
   const onSave = useCallback(() => {
@@ -114,10 +110,7 @@ export default function EditIssue() {
     update.mutate(patch, {
       onSuccess: () => router.back(),
       onError: (err) => {
-        Alert.alert(
-          t.issues.saveFailed,
-          err instanceof Error ? err.message : t.common.unknownError,
-        );
+        showAlert({ title: t.issues.saveFailed, message: err instanceof Error ? err.message : t.common.unknownError });
       },
     });
   }, [canSave, title, currentDescription, descriptionBase, update, t]);

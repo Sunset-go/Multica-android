@@ -17,7 +17,6 @@
  */
 import { useCallback, useState } from "react";
 import {
-  Alert,
   InteractionManager,
   KeyboardAvoidingView,
   Platform,
@@ -26,6 +25,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { showAlert } from "@/lib/alert";
 import { Stack, router } from "expo-router";
 import { Text } from "@/components/ui/text";
 import { AutosizeTextArea } from "@/components/ui/autosize-textarea";
@@ -93,10 +93,7 @@ export default function NewProject() {
       router.back();
       return;
     }
-    Alert.alert(
-      t.projects.discardProject,
-      t.projects.discardProjectMsg,
-      [
+    showAlert({ title: t.projects.discardProject, message: t.projects.discardProjectMsg, buttons: [
         { text: t.common.keepEditing, style: "cancel" },
         {
           text: t.common.discard,
@@ -106,8 +103,7 @@ export default function NewProject() {
             router.back();
           },
         },
-      ],
-    );
+      ] });
   }, [dirty, resetDraft, t]);
 
   const onCreate = useCallback(() => {
@@ -134,10 +130,7 @@ export default function NewProject() {
           });
         },
         onError: (err) => {
-          Alert.alert(
-            t.projects.createFailed,
-            err instanceof Error ? err.message : t.common.unknownError,
-          );
+          showAlert({ title: t.projects.createFailed, message: err instanceof Error ? err.message : t.common.unknownError });
         },
       },
     );

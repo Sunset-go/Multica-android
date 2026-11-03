@@ -1,55 +1,47 @@
 /**
- * MoreTabDropdownAnchor — the popover that opens when the More tab is
- * tapped. Mounted as a sibling to the Tabs view, NOT as the tab button
- * itself: that way the real More tab button stays a standard React
- * Navigation `PlatformPressable` (icon + "More" label, full visual
- * parity with Inbox / My Issues / Chat).
+ * MoreTabDropdownAnchor — the dropdown that opens when the More tab is tapped.
  *
- * The wrapper View is absolute-positioned over the More tab's screen
- * rect (right 25%, bottom = safe-area, height = tab bar). It uses
- * `pointerEvents="box-none"` so taps pass through to the real tab
- * button underneath; we open the dropdown imperatively from the tab's
- * `listeners.tabPress` via the exposed `TriggerRef.open()`. The
- * @rn-primitives Trigger measures its own layout inside `open()`, so
- * the popover anchors to this invisible Pressable's rect — i.e.
- * directly above the More tab.
+ * Custom RN implementation: Modal + absolutely-positioned card. Replaces the
+ * previous @rn-primitives DropdownMenu which rendered with Android's default
+ * Material popup look (rounded-md + thin border + subtle shadow) — the user
+ * wanted a fully custom card so the app's visual language (rounded-2xl, no
+ * border, elevated shadow, matching agent-picker-sheet / action-sheet) is
+ * preserved across platforms.
  *
- * Why ref-controlled instead of `asChild` on the tab button: a previous
- * attempt wrapped a custom tabBarButton in `<DropdownMenu.Root>` +
- * Trigger asChild. RN's BottomTabItem wraps the returned button in
- * `<View style={{flex:1}}>` and expects a single Pressable child. Our
- * Root introduced an extra wrapping `View` with no flex:1, collapsing
- * the More cell and stripping the label. The Option B pattern here
- * leaves the real tab button entirely alone.
+ * Layout:
+ *   - `<Modal transparent animationType="fade">` — full-screen fade layer.
+ *   - Backdrop: `<Pressable className="flex-1 bg-black/30">` — subtle dim
+ *     so the underlying content reads as context (not fully blacked out),
+ *     and tap-to-dismiss matches iOS/Android menu conventions.
+ *   - Card: `<View>` positioned absolute above the tab bar, right-aligned to
+ *     sit over the More tab. The inner `<Pressable onPress={() => {}}>`
+ *     swallows taps inside the card so they don't fall through to the
+ *     backdrop. Card shape: `bg-popover rounded-2xl overflow-hidden
+ *     shadow-2xl` — no border, matching agent-picker-sheet.
  *
- * Visual conventions inside the popover (apps/mobile/CLAUDE.md):
+ * Trigger: controlled by the parent `(tabs)/_layout.tsx` via `open`/`onClose`
+ * props. The More tab's `tabPress` handler sets `open=true`; no imperative
+ * `TriggerRef` needed.
+ *
+ * Visual conventions (apps/mobile/CLAUDE.md):
  *   - All glyphs are Ionicons via @expo/vector-icons — cross-platform so
- *     they render on both iOS and Android (SF Symbols would be blank on
- *     Android). They share the visual language of the bottom tab bar.
- *   - All colours route through THEME tokens (foreground /
- *     mutedForeground / secondary), so dark mode is automatic.
- *   - Workspace is collapsed to a single `<WorkspaceCard>` row (icon +
- *     current workspace name + chevron). Tapping it dismisses the popover
- *     and pushes `/${slug}/switch-workspace`, a formSheet that lists every
- *     workspace and triggers an iOS `Alert.alert` confirm before switching.
- *     Earlier shape (every workspace inlined here) made the popover long
- *     and offered no friction against accidental taps.
+ *     they render on both iOS and Android.
+ *   - All colours route through THEME tokens, so dark mode is automatic.
+ *   - Workspace is a single collapsed row: current workspace name + chevron;
+ *     tapping pushes `/${slug}/switch-workspace`, a formSheet that lists
+ *     every workspace with an iOS `Alert.alert` confirm step. Single-workspace
+ *     users get a disabled row with no chevron.
+ *   - Navigation items use `bg-secondary/70` for the active state — softer
+ *     than the plain `bg-secondary` used elsewhere so the menu doesn't feel
+ *     heavy on a wide phone.
  */
 import { useMemo } from "react";
-import { Image, Pressable, View } from "react-native";
+import { Image, Modal, Pressable, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router, usePathname } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import type { TriggerRef } from "@rn-primitives/dropdown-menu";
-import type { User, Workspace } from "@multica/core/types";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
+import type { Workspace } from "@multica/core/types";
 import { Text } from "@/components/ui/text";
 import { WorkspaceAvatar } from "@/components/workspace/workspace-avatar";
 import { workspaceListOptions } from "@/data/queries/workspaces";
@@ -61,12 +53,16 @@ import { THEME } from "@/lib/theme";
 import { useT } from "@/lib/i18n/use-translation";
 import { cn } from "@/lib/utils";
 
+type MoreLabelKey =
+  | "pinned"
+  | "issues"
+  | "projects"
+  | "agents"
+  | "teams";
+
 interface NavItem {
-  /** Translation key path into t.more, e.g. "pinned". */
-  labelKey: keyof ReturnType<typeof useT>["more"];
-  /** Ionicons name — cross-platform font icon (SF Symbols are iOS-only). */
+  labelKey: MoreLabelKey;
   icon: React.ComponentProps<typeof Ionicons>["name"];
-  /** Path under /:slug/ — final href is `/${slug}${path}`. */
   path: string;
 }
 
@@ -78,10 +74,16 @@ const NAV_ITEMS: NavItem[] = [
   { labelKey: "teams", icon: "people-outline", path: "/more/squads" },
 ];
 
+const CARD_WIDTH = 320;
+const CARD_GAP_FROM_TAB = 8;
+const CARD_RIGHT_INSET = 12;
+
 export function MoreTabDropdownAnchor({
-  triggerRef,
+  open,
+  onClose,
 }: {
-  triggerRef: React.RefObject<TriggerRef | null>;
+  open: boolean;
+  onClose: () => void;
 }) {
   const insets = useSafeAreaInsets();
   const slug = useWorkspaceStore((s) => s.currentWorkspaceSlug);
@@ -92,6 +94,13 @@ export function MoreTabDropdownAnchor({
   const tMore = t.more;
   const tTheme = THEME[colorScheme];
   const currentWorkspace = useCurrentWorkspace(slug);
+  const workspaceCount = useQuery(workspaceListOptions()).data?.length ?? 0;
+
+  const navigate = (path: string) => {
+    if (!slug) return;
+    onClose();
+    router.push(`/${slug}${path}`);
+  };
 
   const isActive = (path: string) => {
     if (!slug) return false;
@@ -99,200 +108,174 @@ export function MoreTabDropdownAnchor({
     return pathname === target || pathname.startsWith(target + "/");
   };
 
+  const cardPosition = {
+    position: "absolute" as const,
+    right: CARD_RIGHT_INSET,
+    bottom:
+      tabBarBottomPadding(insets) + tabBarContentHeight() + CARD_GAP_FROM_TAB,
+    width: CARD_WIDTH,
+  };
+
   return (
-    <View
-      pointerEvents="box-none"
-      style={{
-        position: "absolute",
-        right: 0,
-        bottom: tabBarBottomPadding(insets),
-        width: "25%",
-        height: tabBarContentHeight(),
-      }}
+    <Modal
+      visible={open}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+      statusBarTranslucent
     >
-      <DropdownMenu>
-        <DropdownMenuTrigger ref={triggerRef} asChild>
-          {/* Invisible, non-tappable: the real tab button below catches
-              all touches; we open this trigger imperatively via ref.
-              The Pressable just provides a measurable rect for the
-              popover to anchor against. */}
+      <Pressable className="flex-1 bg-black/30" onPress={onClose}>
+        <View style={cardPosition}>
           <Pressable
-            pointerEvents="none"
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-            style={{ width: "100%", height: "100%" }}
-          />
-        </DropdownMenuTrigger>
-
-        <DropdownMenuContent
-          side="top"
-          align="end"
-          sideOffset={6}
-          className="w-72 p-2"
-        >
-          <UserCard
-            user={user}
-            onPress={() => slug && router.push(`/${slug}/more/settings`)}
-            chevronTint={tTheme.mutedForeground}
-            label={tMore.accountSettings}
-          />
-
-          <DropdownMenuSeparator />
-
-          <WorkspaceCard
-            currentWorkspaceName={currentWorkspace?.name}
-            currentWorkspaceAvatarUrl={currentWorkspace?.avatar_url}
-            onPress={() =>
-              slug && router.push(`/${slug}/switch-workspace`)
-            }
-            chevronTint={tTheme.mutedForeground}
-            workspaceLabel={tMore.workspace}
-            switchLabel={tMore.switchWorkspace}
-          />
-
-          <DropdownMenuSeparator />
-
-          {NAV_ITEMS.map((item) => (
-            <DropdownMenuItem
-              key={item.path}
-              onPress={() => slug && router.push(`/${slug}${item.path}`)}
-              accessibilityLabel={tMore[item.labelKey]}
-              className={cn(
-                "h-9 gap-3",
-                isActive(item.path) && "bg-secondary",
-              )}
-            >
-              <Ionicons
-                name={item.icon}
-                color={tTheme.foreground}
-                size={18}
-              />
-              <Text className="text-sm text-foreground">{tMore[item.labelKey]}</Text>
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </View>
-  );
-}
-
-/**
- * iOS-list-row identity card. Right-side `chevron.right` is the standard
- * disclosure indicator (UITableViewCellAccessoryDisclosureIndicator);
- * this row navigates into settings, so the chevron is idiomatic even
- * though menu items elsewhere in the popover don't use it.
- */
-function UserCard({
-  user,
-  onPress,
-  chevronTint,
-  label,
-}: {
-  user: User | null;
-  onPress: () => void;
-  chevronTint: string;
-  label: string;
-}) {
-  const initial = (user?.name ?? user?.email ?? "U").charAt(0).toUpperCase();
-  return (
-    <DropdownMenuItem
-      onPress={onPress}
-      className="h-12 gap-3"
-      accessibilityLabel={label}
-    >
-      {user?.avatar_url ? (
-        <Image
-          source={{ uri: user.avatar_url }}
-          className="size-8 rounded-full bg-muted"
-        />
-      ) : (
-        <View className="size-8 rounded-full bg-muted items-center justify-center">
-          <Text className="text-xs font-medium text-muted-foreground">
-            {initial}
-          </Text>
-        </View>
-      )}
-      <View className="flex-1 min-w-0">
-        <Text
-          className="text-sm font-medium text-foreground"
-          numberOfLines={1}
-        >
-          {user?.name ?? "—"}
-        </Text>
-        {user?.email ? (
-          <Text
-            className="text-xs text-muted-foreground"
-            numberOfLines={1}
+            onPress={() => {}}
+            className="bg-popover rounded-2xl overflow-hidden shadow-2xl"
           >
-            {user.email}
-          </Text>
-        ) : null}
-      </View>
-      <Ionicons name="chevron-forward" size={12} color={chevronTint} />
-    </DropdownMenuItem>
+            {/* Account row — avatar + name + email + chevron → settings. */}
+            <MenuRow
+              onPress={() => navigate("/more/settings")}
+              className="px-3 py-2.5"
+              accessibilityLabel={tMore.accountSettings}
+            >
+              {user?.avatar_url ? (
+                <Image
+                  source={{ uri: user.avatar_url }}
+                  className="size-10 rounded-full bg-muted"
+                />
+              ) : (
+                <View className="size-10 rounded-full bg-muted items-center justify-center">
+                  <Text className="text-sm font-medium text-muted-foreground">
+                    {(user?.name ?? user?.email ?? "U")
+                      .charAt(0)
+                      .toUpperCase()}
+                  </Text>
+                </View>
+              )}
+              <View className="flex-1 min-w-0 ml-3">
+                <Text
+                  className="text-base font-medium text-foreground"
+                  numberOfLines={1}
+                >
+                  {user?.name ?? "—"}
+                </Text>
+                {user?.email ? (
+                  <Text
+                    className="text-sm text-muted-foreground mt-0.5"
+                    numberOfLines={1}
+                  >
+                    {user.email}
+                  </Text>
+                ) : null}
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={14}
+                color={tTheme.mutedForeground}
+              />
+            </MenuRow>
+
+            <CardDivider />
+
+            {/* Workspace row — current workspace, chevron → switch sheet. */}
+            <MenuRow
+              onPress={() => navigate("/switch-workspace")}
+              disabled={workspaceCount <= 1}
+              className="px-3 py-2.5"
+              accessibilityLabel={
+                workspaceCount > 1
+                  ? tMore.switchWorkspace
+                  : (currentWorkspace?.name ?? tMore.workspace)
+              }
+            >
+              <WorkspaceAvatar
+                name={currentWorkspace?.name ?? tMore.workspace}
+                avatarUrl={currentWorkspace?.avatar_url}
+                size={40}
+              />
+              <Text
+                className="text-base font-medium text-foreground flex-1 min-w-0 ml-3"
+                numberOfLines={1}
+              >
+                {currentWorkspace?.name ?? tMore.workspace}
+              </Text>
+              {workspaceCount > 1 ? (
+                <Ionicons
+                  name="chevron-forward"
+                  size={14}
+                  color={tTheme.mutedForeground}
+                />
+              ) : null}
+            </MenuRow>
+
+            <CardDivider />
+
+            {/* Navigation items. */}
+            {NAV_ITEMS.map((item) => {
+              const active = isActive(item.path);
+              return (
+                <MenuRow
+                  key={item.path}
+                  onPress={() => navigate(item.path)}
+                  className={cn("px-3 py-2.5", active && "bg-secondary/70")}
+                  accessibilityLabel={tMore[item.labelKey]}
+                >
+                  <Ionicons
+                    name={item.icon}
+                    size={20}
+                    color={tTheme.foreground}
+                  />
+                  <Text
+                    className="text-base text-foreground flex-1 min-w-0 ml-3"
+                    numberOfLines={1}
+                  >
+                    {tMore[item.labelKey]}
+                  </Text>
+                </MenuRow>
+              );
+            })}
+          </Pressable>
+        </View>
+      </Pressable>
+    </Modal>
   );
 }
 
 /**
- * Collapsed single-row entry that shows the current workspace name and
- * pushes the switch-workspace formSheet on tap. Same shape as `UserCard`
- * above — `chevron.right` disclosure indicator signals "tap to descend".
- * Auto-closes the popover because `DropdownMenuItem.onPress` dismisses
- * the menu before our handler runs.
- *
- * When the workspaces query hasn't resolved yet, we still render the row
- * using the slug-derived name from the store so the popover doesn't
- * jump-resize on first open; the row remains tappable because the
- * switch-workspace sheet has its own loading state.
- *
- * Single-workspace users: handled in `MoreTabDropdownAnchor` by passing
- * `disabled` — the row renders with no chevron and no press effect.
+ * Row inside the card. Padding is set by the caller via `className` because
+ * account / workspace rows want slightly different density (both are h-12-ish,
+ * nav items a touch tighter). The base class keeps the tap target and
+ * touch feedback consistent.
  */
-function WorkspaceCard({
-  currentWorkspaceName,
-  currentWorkspaceAvatarUrl,
+function MenuRow({
   onPress,
-  chevronTint,
-  workspaceLabel,
-  switchLabel,
+  disabled,
+  className,
+  accessibilityLabel,
+  children,
 }: {
-  currentWorkspaceName: string | undefined;
-  currentWorkspaceAvatarUrl: string | null | undefined;
   onPress: () => void;
-  chevronTint: string;
-  workspaceLabel: string;
-  switchLabel: string;
+  disabled?: boolean;
+  className?: string;
+  accessibilityLabel?: string;
+  children: React.ReactNode;
 }) {
-  const { data } = useQuery(workspaceListOptions());
-  const canSwitch = (data?.length ?? 0) > 1;
-
   return (
-    <DropdownMenuItem
+    <Pressable
       onPress={onPress}
-      disabled={!canSwitch}
-      className="h-12 gap-3"
-      accessibilityLabel={
-        canSwitch ? switchLabel : currentWorkspaceName ?? workspaceLabel
-      }
+      disabled={disabled}
+      accessibilityLabel={accessibilityLabel}
+      className={cn(
+        "flex-row items-center active:bg-secondary",
+        disabled && "opacity-50",
+        className,
+      )}
     >
-      <WorkspaceAvatar
-        name={currentWorkspaceName ?? workspaceLabel}
-        avatarUrl={currentWorkspaceAvatarUrl}
-        size={32}
-      />
-      <View className="flex-1 min-w-0">
-        <Text
-          className="text-sm font-medium text-foreground"
-          numberOfLines={1}
-        >
-          {currentWorkspaceName ?? workspaceLabel}
-        </Text>
-      </View>
-      {canSwitch ? (
-        <Ionicons name="chevron-forward" size={12} color={chevronTint} />
-      ) : null}
-    </DropdownMenuItem>
+      {children}
+    </Pressable>
   );
+}
+
+function CardDivider() {
+  return <View className="h-px bg-border/70" />;
 }
 
 function useCurrentWorkspace(slug: string | null): Workspace | undefined {

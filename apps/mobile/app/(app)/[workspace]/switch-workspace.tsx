@@ -20,11 +20,11 @@
  */
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
   ScrollView,
   View,
 } from "react-native";
+import { showAlert } from "@/lib/alert";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
@@ -47,10 +47,7 @@ export default function SwitchWorkspaceRoute() {
 
   const onSelect = (ws: Workspace) => {
     if (ws.slug === activeSlug) return;
-    Alert.alert(
-      tr.switchWorkspace.title,
-      tr.switchWorkspace.confirm(ws.name),
-      [
+    showAlert({ title: tr.switchWorkspace.title, message: tr.switchWorkspace.confirm(ws.name), buttons: [
         { text: tr.common.cancel, style: "cancel" },
         {
           text: tr.switchWorkspace.switch,
@@ -59,8 +56,7 @@ export default function SwitchWorkspaceRoute() {
             router.replace(`/${ws.slug}/inbox`);
           },
         },
-      ],
-    );
+      ] });
   };
 
   return (

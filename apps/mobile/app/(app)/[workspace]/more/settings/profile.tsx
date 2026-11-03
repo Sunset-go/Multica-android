@@ -12,12 +12,12 @@
  */
 import { useEffect, useState } from "react";
 import {
-  Alert,
   ActivityIndicator,
   Pressable,
   ScrollView,
   View,
 } from "react-native";
+import { showAlert } from "@/lib/alert";
 import * as ImagePicker from "expo-image-picker";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
@@ -84,7 +84,7 @@ export default function ProfileSettingsScreen() {
   const pickFromCamera = async () => {
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert(t.profile.permissionNeeded, t.profile.cameraAccessRequired);
+      showAlert({ title: t.profile.permissionNeeded, message: t.profile.cameraAccessRequired });
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
@@ -108,7 +108,7 @@ export default function ProfileSettingsScreen() {
 
   const uploadAvatar = async (asset: ImagePicker.ImagePickerAsset) => {
     if (asset.fileSize && asset.fileSize > MAX_AVATAR_BYTES) {
-      Alert.alert(t.profile.imageTooLarge, t.profile.imageTooLargeDesc);
+      showAlert({ title: t.profile.imageTooLarge, message: t.profile.imageTooLargeDesc });
       return;
     }
     const fileAsset: FileAsset = {
@@ -125,10 +125,7 @@ export default function ProfileSettingsScreen() {
       const updated = await api.updateMe({ avatar_url: attachment.url });
       setUser(updated);
     } catch (err) {
-      Alert.alert(
-        t.profile.uploadFailed,
-        err instanceof Error ? err.message : t.profile.uploadFailedDesc,
-      );
+      showAlert({ title: t.profile.uploadFailed, message: err instanceof Error ? err.message : t.profile.uploadFailedDesc });
     } finally {
       setUploading(false);
     }
@@ -140,10 +137,7 @@ export default function ProfileSettingsScreen() {
       const updated = await api.updateMe({ avatar_url: "" });
       setUser(updated);
     } catch (err) {
-      Alert.alert(
-        t.profile.removeFailed,
-        err instanceof Error ? err.message : t.profile.removeFailedDesc,
-      );
+      showAlert({ title: t.profile.removeFailed, message: err instanceof Error ? err.message : t.profile.removeFailedDesc });
     } finally {
       setUploading(false);
     }
@@ -156,10 +150,7 @@ export default function ProfileSettingsScreen() {
       const updated = await api.updateMe({ name: name.trim() });
       setUser(updated);
     } catch (err) {
-      Alert.alert(
-        t.profile.saveFailed,
-        err instanceof Error ? err.message : t.profile.saveFailedDesc,
-      );
+      showAlert({ title: t.profile.saveFailed, message: err instanceof Error ? err.message : t.profile.saveFailedDesc });
     } finally {
       setSaving(false);
     }

@@ -16,12 +16,12 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   TextInput,
 } from "react-native";
+import { showAlert } from "@/lib/alert";
 import { Stack, router } from "expo-router";
 import { SubmitIssueButton } from "@/components/issue/submit-issue-button";
 import { CreateFormAttributeRow } from "@/components/issue/create-form-attribute-row";
@@ -79,10 +79,7 @@ export default function NewIssueModal() {
       });
       router.back();
     } catch (err) {
-      Alert.alert(
-        t.issues.createFailed,
-        err instanceof Error ? err.message : t.common.unknownError,
-      );
+      showAlert({ title: t.issues.createFailed, message: err instanceof Error ? err.message : t.common.unknownError });
     }
   }, [
     title,

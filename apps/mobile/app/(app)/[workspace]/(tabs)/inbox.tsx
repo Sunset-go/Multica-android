@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert, FlatList, Platform, ToastAndroid, View } from "react-native";
+import { FlatList, Platform, ToastAndroid, View } from "react-native";
+import { showAlert } from "@/lib/alert";
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -110,18 +111,14 @@ export default function Inbox() {
         else if (i === 2) archiveAllRead.mutate();
         else if (i === 3) archiveCompleted.mutate();
         else if (i === 4) {
-          Alert.alert(
-            t.inbox.archiveAllTitle,
-            t.inbox.archiveAllMsg,
-            [
+          showAlert({ title: t.inbox.archiveAllTitle, message: t.inbox.archiveAllMsg, buttons: [
               { text: t.common.cancel, style: "cancel" },
               {
                 text: t.inbox.archiveAll,
                 style: "destructive",
                 onPress: () => archiveAll.mutate(),
               },
-            ],
-          );
+            ] });
         }
       },
     );

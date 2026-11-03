@@ -9,7 +9,8 @@
  * on a separate route screen, we need a cross-screen channel. Same minimum
  * pattern as `useNewIssueDraftStore` for the new-issue form.
  */
-import { Alert, Pressable, ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
+import { showAlert } from "@/lib/alert";
 import { router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import type { ChatSession } from "@multica/core/types";
@@ -31,10 +32,7 @@ export default function ChatSessionsRoute() {
   const deleteSession = useDeleteChatSession();
 
   const confirmDelete = (session: ChatSession) => {
-    Alert.alert(
-      t.chat.deleteConfirmTitle,
-      session.title || t.chat.untitled,
-      [
+    showAlert({ title: t.chat.deleteConfirmTitle, message: session.title || t.chat.untitled, buttons: [
         { text: t.common.cancel, style: "cancel" },
         {
           text: t.common.delete,
@@ -48,9 +46,7 @@ export default function ChatSessionsRoute() {
             }
           },
         },
-      ],
-      { cancelable: true },
-    );
+      ] });
   };
 
   return (
