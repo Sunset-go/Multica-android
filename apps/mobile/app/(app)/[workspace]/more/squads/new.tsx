@@ -8,12 +8,12 @@
  */
 import { useMemo, useState } from "react";
 import {
-  Alert,
   Pressable,
   ScrollView,
   TextInput,
   View,
 } from "react-native";
+import { showAlert } from "@/lib/alert";
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
@@ -51,11 +51,11 @@ export default function SquadNewPage() {
 
   const handleCreate = async () => {
     if (!name.trim()) {
-      Alert.alert("", t.squadNew.namePlaceholder);
+      showAlert({ title: "", message: t.squadNew.namePlaceholder });
       return;
     }
     if (!leaderId) {
-      Alert.alert("", t.squadNew.noLeaderSelected);
+      showAlert({ title: "", message: t.squadNew.noLeaderSelected });
       return;
     }
     try {
@@ -67,10 +67,7 @@ export default function SquadNewPage() {
       });
       if (slug) router.replace(`/${slug}/more/squads/${squad.id}`);
     } catch (e) {
-      Alert.alert(
-        t.squadNew.createFailed,
-        e instanceof Error ? e.message : undefined,
-      );
+      showAlert({ title: t.squadNew.createFailed, message: e instanceof Error ? e.message : undefined });
     }
   };
 
@@ -197,15 +194,15 @@ function showLeaderPicker(
   t: ReturnType<typeof useT>,
 ) {
   if (agents.length === 0) {
-    Alert.alert("", t.squadNew.noAgents);
+    showAlert({ title: "", message: t.squadNew.noAgents });
     return;
   }
   const buttons = agents.map((a) => ({
     text: a.name,
     onPress: () => onChange(a.id),
   }));
-  Alert.alert(t.squadNew.selectLeader, undefined, [
+  showAlert({ title: t.squadNew.selectLeader, message: undefined, layout: "vertical", buttons: [
     ...buttons,
     { text: t.squadNew.cancel, style: "cancel" as const },
-  ]);
+  ] });
 }

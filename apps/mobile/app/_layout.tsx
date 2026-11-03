@@ -17,6 +17,7 @@ import { LightboxProvider, prewarmHighlighter } from "@/lib/markdown";
 import { getNavTheme } from "@/lib/theme";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { ActionSheetHost } from "@/lib/action-sheet";
+import { AlertHost } from "@/lib/alert";
 import { useLanguageStore } from "@/data/language-store";
 
 // Kick off Shiki highlighter init at module load — fires once per process,
@@ -93,6 +94,7 @@ export default function RootLayout() {
                   </Stack>
                   <PortalHost />
                   <ActionSheetHost />
+                  <AlertHost />
                 </LightboxProvider>
               </AuthInitializer>
             </ThemeProvider>

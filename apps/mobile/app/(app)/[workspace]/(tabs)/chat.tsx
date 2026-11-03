@@ -31,7 +31,8 @@
  *   patch pendingTask with server task_id + created_at.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, View } from "react-native";
+import { View } from "react-native";
+import { showAlert } from "@/lib/alert";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { router } from "expo-router";
 import { useFocusEffect, useIsFocused } from "@react-navigation/native";
@@ -354,10 +355,7 @@ export default function ChatTab() {
     ) => {
       if (!currentAgent) return;
       if (!runtimeBound) {
-        Alert.alert(
-          t.chat.runtimeRequired,
-          t.chat.runtimeRequiredMsg,
-        );
+        showAlert({ title: t.chat.runtimeRequired, message: t.chat.runtimeRequiredMsg });
         return;
       }
 
@@ -495,10 +493,7 @@ export default function ChatTab() {
 
   const handleDeleteActive = useCallback(() => {
     if (!activeSession) return;
-    Alert.alert(
-      t.chat.deleteConfirmTitle,
-      activeSession.title || t.chat.untitled,
-      [
+    showAlert({ title: t.chat.deleteConfirmTitle, message: activeSession.title || t.chat.untitled, buttons: [
         { text: t.common.cancel, style: "cancel" },
         {
           text: t.common.delete,
@@ -509,9 +504,7 @@ export default function ChatTab() {
             deleteSession.mutate(id);
           },
         },
-      ],
-      { cancelable: true },
-    );
+      ] });
   }, [activeSession, deleteSession]);
 
   // ── Composer disabled-state ────────────────────────────────────────────

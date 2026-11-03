@@ -20,13 +20,13 @@
 import { useMemo, useState, useEffect } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Modal,
   Pressable,
   ScrollView,
   TextInput,
   View,
 } from "react-native";
+import { showAlert } from "@/lib/alert";
 import { useLocalSearchParams, router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
@@ -190,12 +190,12 @@ export default function AgentEditPage() {
 
   const handlePermissionPicker = () => {
     if (!canEditPermissions) return;
-    Alert.alert(t.agentEdit.selectPermissionScope, undefined, [
+    showAlert({ title: t.agentEdit.selectPermissionScope, message: undefined, layout: "vertical", buttons: [
       { text: t.agentEdit.scopePrivate, onPress: () => onPermissionModeChange("private") },
       { text: t.agentEdit.scopeWorkspace, onPress: () => { onPermissionModeChange("public_to"); setSelectedMemberIds(new Set()); } },
       { text: t.agentEdit.scopeMembers, onPress: openMemberPicker },
       { text: t.common.cancel, style: "cancel" as const },
-    ]);
+    ] });
   };
 
   const handleSave = async () => {
@@ -273,11 +273,11 @@ export default function AgentEditPage() {
         }
       }
 
-      Alert.alert("", t.agentEdit.saveSuccess, [
+      showAlert({ title: "", message: t.agentEdit.saveSuccess, buttons: [
         { text: "OK", onPress: () => router.back() },
-      ]);
+      ] });
     } catch (e) {
-      Alert.alert(t.agentEdit.saveError, `${step}: ${e instanceof Error ? e.message : "Unknown error"}`);
+      showAlert({ title: t.agentEdit.saveError, message: `${step}: ${e instanceof Error ? e.message : "Unknown error"}` });
     }
   };
 
@@ -930,9 +930,18 @@ function MemberPickerModal({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-black/40" />
-      <View className="flex-1" />
-      <View className="bg-background rounded-t-2xl max-h-[70%] flex flex-col">
+      {/* Android Modal's native dialog parent is wrap-content, not
+          flex — so `flex-1` on direct children collapses to auto
+          height and the sheet ends up glued to the bottom of the
+          screen with its list clipped. Use `position: absolute`
+          instead: the backdrop fills the dialog window, the sheet
+          is pinned to the bottom edge regardless of the native
+          dialog's layout behavior. */}
+      <Pressable
+        className="absolute inset-0 bg-black/40"
+        onPress={onClose}
+      />
+      <View className="absolute bottom-0 left-0 right-0 bg-background rounded-t-2xl max-h-[70%] flex flex-col">
         {/* Header */}
         <View className="flex-row items-center justify-between px-4 py-3">
           <Text className="text-base font-semibold text-foreground">

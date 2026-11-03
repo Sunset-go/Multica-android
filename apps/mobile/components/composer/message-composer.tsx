@@ -44,7 +44,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { Alert, Keyboard, Pressable, TextInput, View } from "react-native";
+import { Keyboard, Pressable, TextInput, View } from "react-native";
+import { showAlert } from "@/lib/alert";
 import { KeyboardStickyView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -351,7 +352,7 @@ export function MessageComposer({
     const picked = picker.assets[0];
     if (!picked) return;
     if (picked.fileSize != null && picked.fileSize > MAX_FILE_SIZE) {
-      Alert.alert(t.composer.fileTooLarge, t.composer.fileTooLargeDesc);
+      showAlert({ title: t.composer.fileTooLarge, message: t.composer.fileTooLargeDesc });
       return;
     }
     const filename = picked.fileName ?? `image-${Date.now()}.jpg`;
@@ -384,7 +385,7 @@ export function MessageComposer({
     const picked = picker.assets[0];
     if (!picked) return;
     if (picked.size != null && picked.size > MAX_FILE_SIZE) {
-      Alert.alert(t.composer.fileTooLarge, t.composer.fileTooLargeDesc);
+      showAlert({ title: t.composer.fileTooLarge, message: t.composer.fileTooLargeDesc });
       return;
     }
     const mimeType = picked.mimeType ?? "application/octet-stream";

@@ -11,7 +11,8 @@
  * lands so the navigation bar shows `MUL-123` (Linear-style).
  */
 import { useCallback, useEffect, useState } from "react";
-import { Alert, Linking, View } from "react-native";
+import { Linking, View } from "react-native";
+import { showAlert } from "@/lib/alert";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
@@ -217,14 +218,10 @@ export default function IssueDetail() {
 
 function confirmDelete(issue: Issue, onConfirm: () => void) {
   const t = getT();
-  Alert.alert(
-    t.issues.deleteIssueTitle,
-    t.issues.deleteIssueMsg(issue.identifier),
-    [
+  showAlert({ title: t.issues.deleteIssueTitle, message: t.issues.deleteIssueMsg(issue.identifier), buttons: [
       { text: t.common.cancel, style: "cancel" },
       { text: t.common.delete, style: "destructive", onPress: onConfirm },
-    ],
-  );
+    ] });
 }
 
 /**

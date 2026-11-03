@@ -16,12 +16,12 @@
 import { useCallback } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Linking,
   RefreshControl,
   ScrollView,
   View,
 } from "react-native";
+import { showAlert } from "@/lib/alert";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -129,10 +129,7 @@ export default function ProjectDetail() {
   };
 
   const onDelete = () => {
-    Alert.alert(
-      t.projects.deleteTitle,
-      t.projects.deleteMsg,
-      [
+    showAlert({ title: t.projects.deleteTitle, message: t.projects.deleteMsg, buttons: [
         { text: t.common.cancel, style: "cancel" },
         {
           text: t.common.delete,
@@ -143,8 +140,7 @@ export default function ProjectDetail() {
             });
           },
         },
-      ],
-    );
+      ] });
   };
 
   return (

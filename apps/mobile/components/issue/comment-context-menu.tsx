@@ -18,7 +18,8 @@
  * first is still dismissing — the callback runs after dismissal completes.
  */
 import { useCallback, useState } from "react";
-import { Alert, Platform } from "react-native";
+import { Platform } from "react-native";
+import { showAlert } from "@/lib/alert";
 import { router } from "expo-router";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
@@ -186,18 +187,14 @@ export function useCommentLongPress(
             });
             return;
           case "delete":
-            Alert.alert(
-              t.issues.deleteCommentTitle,
-              t.issues.deleteCommentMsg,
-              [
+            showAlert({ title: t.issues.deleteCommentTitle, message: t.issues.deleteCommentMsg, buttons: [
                 { text: t.common.cancel, style: "cancel" },
                 {
                   text: t.common.delete,
                   style: "destructive",
                   onPress: () => deleteComment.mutate(entry.id),
                 },
-              ],
-            );
+              ] });
             return;
         }
       },

@@ -8,7 +8,6 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -16,6 +15,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { showAlert } from "@/lib/alert";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { Text } from "@/components/ui/text";
@@ -69,18 +69,14 @@ export default function EditProject() {
       router.back();
       return;
     }
-    Alert.alert(
-      t.projects.discardTitle,
-      t.projects.discardMsg,
-      [
+    showAlert({ title: t.projects.discardTitle, message: t.projects.discardMsg, buttons: [
         { text: t.common.keepEditing, style: "cancel" },
         {
           text: t.common.discard,
           style: "destructive",
           onPress: () => router.back(),
         },
-      ],
-    );
+      ] });
   }, [dirty, t]);
 
   const onSave = useCallback(() => {
@@ -93,10 +89,7 @@ export default function EditProject() {
     update.mutate(patch, {
       onSuccess: () => router.back(),
       onError: (err) => {
-        Alert.alert(
-          t.issues.saveFailed,
-          err instanceof Error ? err.message : t.common.unknownError,
-        );
+        showAlert({ title: t.issues.saveFailed, message: err instanceof Error ? err.message : t.common.unknownError });
       },
     });
   }, [canSave, title, description, icon, update, t]);

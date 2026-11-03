@@ -27,6 +27,7 @@ export interface TranslationDict {
     cancel: string;
     confirm: string;
     close: string;
+    ok: string;
     save: string;
     delete: string;
     retry: string;
@@ -730,6 +731,7 @@ const zh: TranslationDict = {
     cancel: "取消",
     confirm: "确认",
     close: "关闭",
+    ok: "确定",
     save: "保存",
     delete: "删除",
     retry: "重试",
@@ -1473,6 +1475,7 @@ const en: TranslationDict = {
     cancel: "Cancel",
     confirm: "Confirm",
     close: "Close",
+    ok: "OK",
     save: "Save",
     delete: "Delete",
     retry: "Retry",

@@ -31,6 +31,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+
 import { Ionicons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/text";
 import { Separator } from "@/components/ui/separator";
@@ -67,6 +68,12 @@ export type SheetPickerModalProps = {
    * would just waste space.
    */
   searchPlaceholder?: string;
+  /**
+   * Ids where tapping the row fires `onSelect` but does NOT close the
+   * modal. Use when one row chains into a secondary sheet (e.g. permission
+   * scope → "Members" → member picker). Backdrop / ✕ still close.
+   */
+  keepOpenIds?: string[];
 };
 
 export function SheetPickerModal({
@@ -79,6 +86,7 @@ export function SheetPickerModal({
   loading = false,
   emptyMessage = "",
   searchPlaceholder,
+  keepOpenIds,
 }: SheetPickerModalProps) {
   const { colorScheme } = useColorScheme();
   const mutedFg = THEME[colorScheme].mutedForeground;
@@ -106,7 +114,7 @@ export function SheetPickerModal({
   const handleSelect = (id: string) => {
     setSearch("");
     onSelect(id);
-    onClose();
+    if (!keepOpenIds?.includes(id)) onClose();
   };
 
   const handleCancel = () => {
@@ -121,9 +129,18 @@ export function SheetPickerModal({
       animationType="fade"
       onRequestClose={handleCancel}
     >
-      <View className="flex-1 bg-black/40" />
-      <View className="flex-1" />
-      <View className="bg-background rounded-t-2xl flex flex-col max-h-[70%]">
+      {/* Android Modal's native dialog parent is wrap-content, not flex.
+          So `flex-1` on direct children collapses to auto height and the
+          sheet ends up glued to the bottom of the screen with its list
+          clipped. Use `position: absolute` on both the backdrop and the
+          content View so their position is unambiguous regardless of
+          the native dialog's layout behavior. This matches the
+          `absolute inset-0` pattern that already works in lib/alert.tsx. */}
+      <Pressable
+        className="absolute inset-0 bg-black/40"
+        onPress={handleCancel}
+      />
+      <View className="absolute bottom-0 left-0 right-0 bg-background rounded-t-2xl flex flex-col max-h-[70%]">
         {/* Header: title + close */}
         <View className="flex-row items-center justify-between px-4 py-3">
           <Text

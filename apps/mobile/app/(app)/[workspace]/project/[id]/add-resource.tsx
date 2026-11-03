@@ -8,7 +8,8 @@
  * is the canonical validator (validateAndNormalizeResourceRef in Go).
  */
 import { useCallback, useState } from "react";
-import { Alert, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { showAlert } from "@/lib/alert";
 import { useLocalSearchParams, router } from "expo-router";
 import { Text } from "@/components/ui/text";
 import { TextField } from "@/components/ui/text-field";
@@ -39,10 +40,7 @@ export default function AddResourceRoute() {
       {
         onSuccess: () => router.back(),
         onError: (err) => {
-          Alert.alert(
-            t.projects.attachFailed,
-            err instanceof Error ? err.message : t.common.unknownError,
-          );
+          showAlert({ title: t.projects.attachFailed, message: err instanceof Error ? err.message : t.common.unknownError });
         },
       },
     );

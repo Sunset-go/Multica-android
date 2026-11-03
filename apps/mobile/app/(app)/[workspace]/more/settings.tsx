@@ -13,7 +13,8 @@
  * Theme picker stays inline (3 fixed options, fits in one section).
  * Language picker (zh/en) is also inline.
  */
-import { Alert, ActivityIndicator, Pressable, ScrollView, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
+import { showAlert } from "@/lib/alert";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
@@ -78,7 +79,7 @@ export default function SettingsPage() {
   };
 
   const onSignOut = () => {
-    Alert.alert(t.settings.signOutTitle, t.settings.signOutMessage, [
+    showAlert({ title: t.settings.signOutTitle, message: t.settings.signOutMessage, buttons: [
       { text: t.common.cancel, style: "cancel" },
       {
         text: t.settings.signOut,
@@ -88,7 +89,7 @@ export default function SettingsPage() {
           await logout();
         },
       },
-    ]);
+    ] });
   };
 
   const goProfile = () => router.push(`/${currentSlug}/more/settings/profile`);

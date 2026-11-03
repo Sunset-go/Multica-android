@@ -8,7 +8,8 @@
  * via `getRepoUrl()` only when the dispatch knows the type, so a future
  * resource_type renders as a generic row with the label instead of crashing.
  */
-import { ActivityIndicator, Alert, Linking, Pressable, View } from "react-native";
+import { ActivityIndicator, Linking, Pressable, View } from "react-native";
+import { showAlert } from "@/lib/alert";
 import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import type {
@@ -46,18 +47,14 @@ export function ProjectResourcesSection({ projectId, onAdd }: Props) {
   };
 
   const onLongPress = (resource: ProjectResource) => {
-    Alert.alert(
-      t.projects.detachResourceTitle,
-      describeResource(resource),
-      [
+    showAlert({ title: t.projects.detachResourceTitle, message: describeResource(resource), buttons: [
         { text: t.common.cancel, style: "cancel" },
         {
           text: t.projects.detach,
           style: "destructive",
           onPress: () => remove.mutate(resource.id),
         },
-      ],
-    );
+      ] });
   };
 
   return (
