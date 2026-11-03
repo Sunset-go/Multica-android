@@ -31,8 +31,8 @@ if (!project.configurations.findByName("fbjniCxx")) {
         def aar = configurations.fbjniCxx.resolvedConfiguration.resolvedArtifacts
                 .find { it.name == "fbjni" }?.file
         if (aar == null) {
-            logger.warn("[fbjni-cxx] fbjni AAR could not be resolved — libc++_shared.so left as-is")
-            return
+            throw new GradleException(
+                    "[fbjni-cxx] fbjni AAR could not be resolved — the APK would crash at startup")
         }
 
         def tmp = file("${project.buildDir}/tmp-fbjni-cxx")
@@ -42,6 +42,7 @@ if (!project.configurations.findByName("fbjniCxx")) {
             into tmp
         }
 
+        def replaced = 0
         fileTree(new File(tmp, "jni")).matching { include "*/libc++_shared.so" }.files.each { src ->
             def dst = new File(mergedLibDir, "${src.parentFile.name}/libc++_shared.so")
             if (dst.parentFile.exists()) {
@@ -51,8 +52,13 @@ if (!project.configurations.findByName("fbjniCxx")) {
                         dst.toPath(),
                         java.nio.file.StandardCopyOption.REPLACE_EXISTING
                 )
+                replaced++
                 logger.lifecycle("[fbjni-cxx] replaced ${src.parentFile.name}/libc++_shared.so with fbjni's copy")
             }
+        }
+        if (replaced == 0) {
+            throw new GradleException(
+                    "[fbjni-cxx] no libc++_shared.so was replaced in ${mergedLibDir}")
         }
     }
 
@@ -61,7 +67,8 @@ if (!project.configurations.findByName("fbjniCxx")) {
             // Locate the merged native-libs output. AGP writes it to
             // <build>/intermediates/merged_native_libs/<variant>/<task>/out/lib,
             // but the exact layout changes between AGP versions — so try the
-            // task's own output directories first and fall back to that path.
+            // task's own output directories first, then the known path, then a
+            // recursive scan of the build dir.
             def candidates = []
             t.outputs.files.files.each { f ->
                 if (f.isDirectory()) {
@@ -80,8 +87,19 @@ if (!project.configurations.findByName("fbjniCxx")) {
                 )
             }
             if (libDir == null) {
-                logger.warn("[fbjni-cxx] merged native libs dir not found for ${t.name}")
-                return
+                def scan = fileTree("${project.buildDir}/intermediates") {
+                    include "**/lib/arm64-v8a/libc++_shared.so"
+                    include "**/lib/armeabi-v7a/libc++_shared.so"
+                    include "**/lib/x86_64/libc++_shared.so"
+                }.files
+                if (!scan.isEmpty()) {
+                    libDir = scan[0].parentFile.parentFile
+                }
+            }
+            if (libDir == null) {
+                throw new GradleException(
+                        "[fbjni-cxx] merged native libs dir not found for ${t.name} — " +
+                        "refusing to ship an APK that crashes at startup")
             }
             replaceMergedLibcxx(t, libDir)
         }
