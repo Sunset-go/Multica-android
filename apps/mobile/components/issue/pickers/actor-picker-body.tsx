@@ -13,11 +13,19 @@ import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
 import type { Agent, Squad } from "@multica/core/types";
+import { canAssignAgentToIssue } from "@multica/core/permissions";
 import { Text } from "@/components/ui/text";
 import { ActorAvatar } from "@/components/ui/actor-avatar";
 import { agentListOptions } from "@/data/queries/agents";
 import { squadListOptions } from "@/data/queries/squads";
+import { memberListOptions } from "@/data/queries/members";
+import { useAuthStore } from "@/data/auth-store";
 import { useWorkspaceStore } from "@/data/workspace-store";
+import {
+  filterQuickCreateAgents,
+  filterQuickCreateSquads,
+  runnableAgentIdSet,
+} from "@/lib/quick-create-actor-filter";
 import { THEME } from "@/lib/theme";
 import { useT } from "@/lib/i18n/use-translation";
 import type { QuickCreateActor, QuickCreateActorType } from "@/data/stores/quick-create-draft-store";
@@ -49,23 +57,33 @@ export function ActorPickerBody({ value, onChange }: Props) {
 
   const { data: agents = [] } = useQuery(agentListOptions(wsId));
   const { data: squads = [] } = useQuery(squadListOptions(wsId));
+  const { data: members = [] } = useQuery(memberListOptions(wsId));
+  const userId = useAuthStore((s) => s.user?.id ?? null);
 
   const rows = useMemo<Row[]>(() => {
     if (type === "agent") {
-      return agents.map((a: Agent) => ({
+      // Mirror web/desktop: drop archived + runtime-unbound agents and any
+      // agent the current user cannot invoke (private / restricted).
+      const myRole = members.find((m) => m.user_id === userId)?.role ?? null;
+      const assignable = filterQuickCreateAgents(agents, (a) =>
+        canAssignAgentToIssue(a, { userId, role: myRole }).allowed,
+      );
+      return assignable.map((a: Agent) => ({
         type: "agent" as const,
         id: a.id,
         name: a.name,
         avatarType: "agent" as const,
       }));
     }
-    return squads.map((s: Squad) => ({
+    // Squads: drop archived and any whose leader agent isn't runnable.
+    const runnable = runnableAgentIdSet(agents);
+    return filterQuickCreateSquads(squads, runnable).map((s: Squad) => ({
       type: "squad" as const,
       id: s.id,
       name: s.name,
       avatarType: "squad" as const,
     }));
-  }, [type, agents, squads]);
+  }, [type, agents, squads, members, userId]);
 
   const segment = (value2: QuickCreateActorType, label: string) => {
     const selected = type === value2;
