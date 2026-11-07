@@ -98,6 +98,7 @@ export interface TranslationDict {
     editIssue: string;
     newProject: string;
     newIssue: string;
+    quickCreate: string;
     search: string;
     assignee: string;
     mention: string;
@@ -363,6 +364,13 @@ export interface TranslationDict {
     priority: string;
     createIssue: string;
     newIssue: string;
+    manualMode: string;
+    agentMode: string;
+    squadMode: string;
+    pickAgent: string;
+    promptPlaceholder: string;
+    noAgents: string;
+    noSquads: string;
     issueActions: string;
     pin: string;
     unpin: string;
@@ -802,6 +810,7 @@ const zh: TranslationDict = {
     editIssue: "编辑任务",
     newProject: "新建项目",
     newIssue: "新建任务",
+    quickCreate: "新建智能体任务",
     search: "搜索",
     assignee: "负责人",
     mention: "提及",
@@ -1067,6 +1076,13 @@ const zh: TranslationDict = {
     priority: "优先级",
     createIssue: "新建任务",
     newIssue: "新建任务",
+    manualMode: "手动",
+    agentMode: "智能体",
+    squadMode: "小队",
+    pickAgent: "智能体 / 小队",
+    promptPlaceholder: "输入提示词，智能体会自动优化并创建任务…",
+    noAgents: "没有可用的智能体",
+    noSquads: "没有可用的小队",
     issueActions: "任务操作",
     pin: "固定",
     unpin: "取消固定",
@@ -1546,6 +1562,7 @@ const en: TranslationDict = {
     editIssue: "Edit Issue",
     newProject: "New Project",
     newIssue: "New Issue",
+    quickCreate: "New agent task",
     search: "Search",
     assignee: "Assignee",
     mention: "Mention",
@@ -1811,6 +1828,13 @@ const en: TranslationDict = {
     priority: "Priority",
     createIssue: "Create issue",
     newIssue: "New Issue",
+    manualMode: "Manual",
+    agentMode: "Agent",
+    squadMode: "Squad",
+    pickAgent: "Agent / Squad",
+    promptPlaceholder: "Enter a prompt — the agent optimises it and files the task…",
+    noAgents: "No agents available",
+    noSquads: "No squads available",
     issueActions: "Issue actions",
     pin: "Pin",
     unpin: "Unpin",

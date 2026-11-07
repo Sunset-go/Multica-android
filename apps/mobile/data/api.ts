@@ -30,6 +30,7 @@ import type {
   InboxItem,
   Issue,
   IssueLabelsResponse,
+  IssuePriority,
   RuntimeModelListRequest,
   Label,
   IssueReaction,
@@ -886,6 +887,28 @@ class ApiClient {
     return this.fetch<Issue>("/api/issues", {
       method: "POST",
       body: JSON.stringify(body),
+    });
+  }
+
+  // Agent-mode task creation — mirrors POST /api/issues/quick-create
+  // (packages/core/api/client.ts:903). The server optimises the prompt and
+  // creates the issue + agent run in one shot; the client only submits the
+  // prompt and the target actor, and gets back the created task id. No Zod
+  // schema for this endpoint (PC calls this.fetch directly too) — the
+  // response is just `{ task_id }` and we keep it raw.
+  async quickCreateIssue(data: {
+    agent_id?: string;
+    squad_id?: string;
+    prompt: string;
+    priority?: IssuePriority;
+    due_date?: string;
+    project_id?: string | null;
+    parent_issue_id?: string | null;
+    attachment_ids?: string[];
+  }): Promise<{ task_id: string }> {
+    return this.fetch<{ task_id: string }>("/api/issues/quick-create", {
+      method: "POST",
+      body: JSON.stringify(data),
     });
   }
 
