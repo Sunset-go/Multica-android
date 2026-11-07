@@ -16,6 +16,7 @@ import { useWorkspacePresencePrefetch } from "@/lib/use-workspace-presence-prefe
 import { usePrefetchWorkspaceTabs } from "@/lib/use-prefetch-workspace-tabs";
 import { ModalCloseButton } from "@/components/ui/modal-close-button";
 import { useNewIssueDraftResetOnWorkspaceChange } from "@/data/stores/new-issue-draft-store";
+import { useQuickCreateDraftResetOnWorkspaceChange } from "@/data/stores/quick-create-draft-store";
 import { useNewProjectDraftResetOnWorkspaceChange } from "@/data/stores/new-project-draft-store";
 import { useChatSessionPickerResetOnWorkspaceChange } from "@/data/stores/chat-session-picker-store";
 import { useT } from "@/lib/i18n/use-translation";
@@ -123,6 +124,7 @@ export default function WorkspaceLayout() {
   // changes — a draft picked under workspace A (assignee id, draft
   // session id, etc.) is invalid in workspace B and must not leak.
   useNewIssueDraftResetOnWorkspaceChange(matched?.id ?? null);
+  useQuickCreateDraftResetOnWorkspaceChange(matched?.id ?? null);
   useNewProjectDraftResetOnWorkspaceChange(matched?.id ?? null);
   useChatSessionPickerResetOnWorkspaceChange(matched?.id ?? null);
 
@@ -278,6 +280,25 @@ export default function WorkspaceLayout() {
           name="new-issue-picker/due-date"
           options={SHEET_OPTIONS}
         />
+        {/* Quick Create (agent-mode) draft formSheet pickers — same
+            pattern as new-issue-picker/*. The actor picker draws its own
+            header; the rest are chrome-less sheets. */}
+        <Stack.Screen
+          name="quick-create-picker/actor"
+          options={SHEET_OPTIONS}
+        />
+        <Stack.Screen
+          name="quick-create-picker/priority"
+          options={SHEET_OPTIONS}
+        />
+        <Stack.Screen
+          name="quick-create-picker/project"
+          options={SHEET_OPTIONS}
+        />
+        <Stack.Screen
+          name="quick-create-picker/due-date"
+          options={SHEET_OPTIONS}
+        />
         {/* New-project draft formSheet pickers — same pattern as
             new-issue-picker/*. Stacked on top of `project/new` (a modal). */}
         <Stack.Screen
@@ -342,6 +363,14 @@ export default function WorkspaceLayout() {
           name="new-issue"
           options={{
             title: t.screens.newIssue,
+            presentation: "modal",
+            headerLeft: () => <ModalCloseButton />,
+          }}
+        />
+        <Stack.Screen
+          name="quick-create"
+          options={{
+            title: t.screens.quickCreate,
             presentation: "modal",
             headerLeft: () => <ModalCloseButton />,
           }}

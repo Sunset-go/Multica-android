@@ -24,6 +24,7 @@ import {
 import { showAlert } from "@/lib/alert";
 import { Stack, router } from "expo-router";
 import { SubmitIssueButton } from "@/components/issue/submit-issue-button";
+import { CreateModeSwitch } from "@/components/issue/create-mode-switch";
 import { CreateFormAttributeRow } from "@/components/issue/create-form-attribute-row";
 import { MentionSuggestionBar } from "@/components/issue/mention-suggestion-bar";
 import { DescriptionField } from "@/components/issue/description-field";
@@ -116,6 +117,7 @@ export default function NewIssueModal() {
           contentContainerClassName="px-4 pt-4 pb-6 gap-4"
           keyboardShouldPersistTaps="handled"
         >
+          <CreateModeSwitch current="manual" />
           <TextInput
             value={title}
             onChangeText={setTitle}

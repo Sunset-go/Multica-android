@@ -18,6 +18,7 @@ import type {
   AgentTask,
   CreateIssueRequest,
   Issue,
+  IssuePriority,
   IssueReaction,
   Label,
   Reaction,
@@ -595,6 +596,34 @@ export function useCreateIssue() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: issueKeys.myAll(wsId) });
       qc.invalidateQueries({ queryKey: inboxKeys.all(wsId) });
+    },
+  });
+}
+
+/**
+ * Agent-mode task creation (`POST /api/issues/quick-create`). No local
+ * prompt-optimisation logic — the server optimises the prompt and creates
+ * the issue + agent run in one shot. The inbox already renders the
+ * quick_create_done / quick_create_failed / quick_create_unconfirmed
+ * outcomes (components/inbox/detail-label.tsx), so we only invalidate the
+ * inbox (and my-issues, where the created issue may appear once linked).
+ */
+export function useQuickCreateIssue() {
+  const qc = useQueryClient();
+  const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
+
+  return useMutation({
+    mutationFn: (body: {
+      agent_id?: string;
+      squad_id?: string;
+      prompt: string;
+      priority?: IssuePriority;
+      due_date?: string;
+      project_id?: string | null;
+    }) => api.quickCreateIssue(body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: inboxKeys.all(wsId) });
+      qc.invalidateQueries({ queryKey: issueKeys.myAll(wsId) });
     },
   });
 }
